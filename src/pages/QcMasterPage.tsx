@@ -245,8 +245,6 @@ export default function QcMasterPage() {
                 viewMode={viewMode}
                 rSrch={rSrch}
                 mSrch={mSrch}
-                rSrchVersions={rSrchVersions}
-                mSrchVersions={mSrchVersions}
                 onRSrchChange={setRSrch}
                 onMSrchChange={setMSrch}
                 onSearch={handleSearch}
