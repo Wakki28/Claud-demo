@@ -48,6 +48,7 @@ export type MasterSearchState = {
   processCode: string;
   masterVersion: string;
   checkItemName: string;
+  checkMethodType: string;
 };
 
 export type ModalState = {

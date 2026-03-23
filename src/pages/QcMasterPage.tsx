@@ -40,6 +40,7 @@ const EMPTY_M_SRCH: MasterSearchState = {
   processCode: "",
   masterVersion: "",
   checkItemName: "",
+  checkMethodType: "",
 };
 
 export default function QcMasterPage() {
@@ -94,6 +95,7 @@ export default function QcMasterPage() {
         if (mApp.processCode && m.processCode !== mApp.processCode) return false;
         if (mApp.masterVersion && m.masterVersion !== mApp.masterVersion) return false;
         if (mApp.checkItemName && !m.checkItemName.includes(mApp.checkItemName)) return false;
+        if (mApp.checkMethodType && m.checkMethodType !== mApp.checkMethodType) return false;
         return true;
       }),
     [masters, mApp],

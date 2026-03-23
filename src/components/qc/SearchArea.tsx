@@ -98,6 +98,17 @@ export default function SearchArea({
             value={mSrch.checkItemName}
             onChange={(e) => onMSrchChange({ ...mSrch, checkItemName: e.target.value })}
           />
+
+          <span className="srch-lbl" style={{ marginLeft: 6 }}>検査方法</span>
+          <select
+            className="srch-sel"
+            value={mSrch.checkMethodType}
+            onChange={(e) => onMSrchChange({ ...mSrch, checkMethodType: e.target.value })}
+          >
+            <option value="">すべて</option>
+            <option value="合否判定">合否判定</option>
+            <option value="数値入力">数値入力</option>
+          </select>
         </div>
       )}
 
