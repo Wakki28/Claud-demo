@@ -210,6 +210,8 @@ export const DUMMY_MASTERS: QcMasterItem[] = (() => {
   PROCESS_CODES.forEach((pc) => {
     (PROCESS_VERSION_MAP[pc] ?? []).forEach((ver) => {
       (ITEMS_PER_PROCESS[pc] ?? []).forEach((item, ii) => {
+        const checkMethodType = ii % 2 === 0 ? "合否判定" : "数値入力";
+        const isPassFail = checkMethodType === "合否判定";
         const ul = parseFloat((10 + id * 0.1).toFixed(1));
         const ll = parseFloat((5 + id * 0.05).toFixed(1));
         rows.push({
@@ -217,13 +219,17 @@ export const DUMMY_MASTERS: QcMasterItem[] = (() => {
           processCode: pc,
           masterVersion: ver,
           checkItemName: item,
-          checkMethodType: ["目視", "ノギス", "引張試験機", "電子天秤", "マイクロメータ"][ii % 5],
+          checkMethodType,
           nCount: [1, 3, 5, 10][ii % 4],
-          judgementCriteria: ["合否基準A", "合否基準B", "規格値以内"][ii % 3],
-          measurementMethod: ["直接測定", "比較測定", "間接測定"][ii % 3],
-          specUpperLimit: ul,
-          specLowerLimit: ll,
-          specCenterValue: parseFloat(((ul + ll) / 2).toFixed(2)),
+          judgementCriteria: isPassFail
+            ? ["図面（外観基準）", "限度見本", "検査基準書A", "外観検査規格書"][ii % 4]
+            : ["寸法一覧表", "図面（公差表示）", "製品仕様書", "検査基準書B"][ii % 4],
+          measurementMethod: isPassFail
+            ? ["目視", "ゲージ", "投影機", "限度見本"][ii % 4]
+            : ["ノギス", "マイクロメータ", "測長機", "引張試験機", "電子天秤", "硬度計"][ii % 6],
+          specUpperLimit: isPassFail ? null : ul,
+          specLowerLimit: isPassFail ? null : ll,
+          specCenterValue: isPassFail ? null : parseFloat(((ul + ll) / 2).toFixed(2)),
           referenceFile:
             ii % 3 === 0
               ? `QC_REF_${String(id).padStart(3, "0")}.pdf`

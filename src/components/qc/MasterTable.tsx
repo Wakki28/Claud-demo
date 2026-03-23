@@ -58,13 +58,11 @@ export default function MasterTable({
                 className={`${isGFirst ? "group-first" : ""} ${isNew ? "row-new" : isEdited ? "row-edited" : ""}`.trim()}
               >
                 <td>
-                  <span className="process-badge">{m.processCode}</span>
+                  {m.processCode}
                   {isNew && <span className="tag-new">NEW</span>}
                   {isEdited && <span className="tag-edited">編集済</span>}
                 </td>
-                <td>
-                  <span className="ver-badge">{m.masterVersion}</span>
-                </td>
+                <td>{m.masterVersion}</td>
                 <td>{m.checkItemName}</td>
                 <td>{m.checkMethodType}</td>
                 <td style={{ textAlign: "center" }}>{m.nCount}</td>
