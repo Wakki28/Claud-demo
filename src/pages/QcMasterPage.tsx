@@ -27,6 +27,7 @@ import Pagination from "../components/qc/Pagination";
 import MasterFormModal from "../components/qc/MasterFormModal";
 import FilePreviewModal from "../components/qc/FilePreviewModal";
 import SuccessDialog from "../components/qc/SuccessDialog";
+import ImportExportModal from "../components/qc/ImportExportModal";
 
 const EMPTY_R_SRCH: ResultSearchState = {
   processCode: "",
@@ -69,6 +70,7 @@ export default function QcMasterPage() {
   const [modal, setModal] = useState<ModalState>(null);
   const [dlgMsg, setDlgMsg] = useState<string | null>(null);
   const [prevFile, setPrevFile] = useState<PreviewFile>(null);
+  const [ieModal, setIeModal] = useState<{ tab: "import" | "export" } | null>(null);
 
   // フィルタ済みデータ
   const filtR = useMemo(
@@ -172,6 +174,10 @@ export default function QcMasterPage() {
     if (!window.confirm(`「${item.processCode} / ${item.checkItemName}」を削除しますか？`)) return;
     setMasters((p) => p.filter((m) => m.id !== item.id));
     setDlgMsg("削除完了しました。");
+  };
+
+  const handleImport = (_file: File) => {
+    setDlgMsg("インポートが完了しました。");
   };
 
   // 実績サマリー件数
@@ -284,13 +290,27 @@ export default function QcMasterPage() {
                 </div>
                 <div className="tbar-r">
                   {viewMode === "master" && (
-                    <button
-                      className="btn-new"
-                      onClick={() => setModal({ mode: "create", data: null })}
-                    >
-                      ＋ 新規登録
-                    </button>
+                    <>
+                      <button
+                        className="btn-new"
+                        onClick={() => setModal({ mode: "create", data: null })}
+                      >
+                        ＋ 新規登録
+                      </button>
+                      <button
+                        className="btn-imp"
+                        onClick={() => setIeModal({ tab: "import" })}
+                      >
+                        ⬆ インポート
+                      </button>
+                    </>
                   )}
+                  <button
+                    className="btn-exp"
+                    onClick={() => setIeModal({ tab: "export" })}
+                  >
+                    ⬇ エクスポート
+                  </button>
                 </div>
               </div>
 
@@ -338,6 +358,18 @@ export default function QcMasterPage() {
         {/* ファイルプレビュー */}
         {prevFile && (
           <FilePreviewModal file={prevFile} onClose={() => setPrevFile(null)} />
+        )}
+
+        {/* インポート/エクスポート */}
+        {ieModal && (
+          <ImportExportModal
+            viewMode={viewMode}
+            initialTab={ieModal.tab}
+            masterData={masters}
+            resultData={DUMMY_RESULTS}
+            onClose={() => setIeModal(null)}
+            onImport={handleImport}
+          />
         )}
 
         {/* 成功ダイアログ */}
