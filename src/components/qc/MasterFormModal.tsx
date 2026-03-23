@@ -49,10 +49,26 @@ export default function MasterFormModal({ modal, onClose, onSave }: MasterFormMo
     reader.readAsDataURL(f);
   }, []);
 
+  const isPassFail = form.checkMethodType === "合否判定";
+
   const handleSave = () => {
-    if (!form.processCode || !form.masterVersion || !form.checkItemName) {
-      alert("工程コード・バージョン・検査項目名は必須です");
+    const base =
+      !form.processCode ||
+      !form.masterVersion ||
+      !form.checkItemName ||
+      !form.checkMethodType ||
+      !form.nCount ||
+      !form.judgementCriteria ||
+      !form.measurementMethod;
+    if (base) {
+      alert("工程コード・バージョン・検査項目名・検査方法種類・N数・判定基準・測定方法は必須です");
       return;
+    }
+    if (!isPassFail) {
+      if (form.specUpperLimit === null || form.specLowerLimit === null) {
+        alert("数値入力の場合、規格上限値・規格下限値は必須です");
+        return;
+      }
     }
     const id = modal.mode === "create" ? Date.now() : (modal.data?.id ?? Date.now());
     onSave({ ...form, id, updatedAt: mkDate(0) }, modal.mode);
@@ -130,13 +146,15 @@ export default function MasterFormModal({ modal, onClose, onSave }: MasterFormMo
               <div className="m-lbl">
                 検査方法種類<span className="m-req">*</span>
               </div>
-              <input
-                type="text"
-                className="m-inp"
+              <select
+                className="m-sel"
                 value={form.checkMethodType}
-                placeholder="例：目視・ノギス"
                 onChange={(e) => sf("checkMethodType", e.target.value)}
-              />
+              >
+                <option value="">－選択してください－</option>
+                <option value="合否判定">合否判定</option>
+                <option value="数値入力">数値入力</option>
+              </select>
             </div>
             <div className="m-field">
               <div className="m-lbl">
@@ -181,11 +199,13 @@ export default function MasterFormModal({ modal, onClose, onSave }: MasterFormMo
             />
           </div>
 
-          {/* 規格設定 */}
+          {/* 規格設定（数値入力時のみ） */}
+          {!isPassFail && (
           <div className="m-sec">
             <span className="m-sec-ico">◇</span>規格設定
           </div>
-          <div className="m-row3">
+          )}
+          {!isPassFail && <div className="m-row3">
             <div className="m-field">
               <div className="m-lbl">
                 規格上限値<span className="m-req">*</span>
@@ -269,7 +289,7 @@ export default function MasterFormModal({ modal, onClose, onSave }: MasterFormMo
                 )}
               </div>
             </div>
-          </div>
+          </div>}
 
           {/* 添付ファイル */}
           <div className="m-sec">
