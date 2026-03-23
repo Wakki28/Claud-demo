@@ -1,10 +1,28 @@
-import type { QcResultItem } from "../../types/qc";
+import { useState, useEffect } from "react";
+import type { QcResultItem, AnomalyInfo } from "../../types/qc";
 
 type ResultTableProps = {
   rows: QcResultItem[];
+  anomalies?: AnomalyInfo[];
 };
 
-export default function ResultTable({ rows }: ResultTableProps) {
+function toRowId(r: QcResultItem) {
+  return `${r.processCode}-${r.masterVersion}-${r.checkItemName}`;
+}
+
+export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [pinnedId, setPinnedId] = useState<string | null>(null);
+
+  const anomalyMap = new Map(anomalies.map((a) => [a.rowId, a]));
+
+  // Close pinned popup when clicking outside
+  useEffect(() => {
+    const handleOutsideClick = () => setPinnedId(null);
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, []);
+
   return (
     <table>
       <thead>
@@ -54,38 +72,72 @@ export default function ResultTable({ rows }: ResultTableProps) {
             </td>
           </tr>
         ) : (
-          rows.map((r) => (
-            <tr
-              key={r.id}
-              className={r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}
-            >
-              <td>
-                <span className="ver-badge">
-                  {r.processCode}-{r.masterVersion}
-                </span>
-              </td>
-              <td>{r.checkItemName}</td>
-              <td style={{ textAlign: "center" }}>
-                {r.isAdded && <span className="badge-added">追加</span>}
-                {r.isUpdated && <span className="badge-updated">修正</span>}
-                {!r.isAdded && !r.isUpdated && <span style={{ color: "#ccc" }}>—</span>}
-              </td>
-              <td>{r.measuredValue}</td>
-              <td>
-                <span
-                  className={
-                    r.judgement === "OK" ? "bdg-ok" : r.judgement === "NG" ? "bdg-ng" : "bdg-na"
-                  }
-                >
-                  {r.judgement}
-                </span>
-              </td>
-              <td style={{ color: "#555" }}>{r.inspectedAt}</td>
-              <td>{r.inspectedBy}</td>
-              <td style={{ color: "#555" }}>{r.registeredAt}</td>
-              <td>{r.registeredBy}</td>
-            </tr>
-          ))
+          rows.map((r) => {
+            const rowId = toRowId(r);
+            const anomaly = anomalyMap.get(rowId);
+            const hasAnomaly = (r.judgement === "NG" || r.judgement === "-") && !!anomaly;
+            const isActive = hoveredId === rowId || pinnedId === rowId;
+
+            return (
+              <tr
+                key={r.id}
+                className={r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}
+              >
+                <td>
+                  <span className="ver-badge">
+                    {r.processCode}-{r.masterVersion}
+                  </span>
+                </td>
+                <td>{r.checkItemName}</td>
+                <td style={{ textAlign: "center" }}>
+                  {r.isAdded && <span className="badge-added">追加</span>}
+                  {r.isUpdated && <span className="badge-updated">修正</span>}
+                  {!r.isAdded && !r.isUpdated && <span style={{ color: "#ccc" }}>—</span>}
+                </td>
+                <td>{r.measuredValue}</td>
+                <td>
+                  <span
+                    className={
+                      r.judgement === "OK" ? "bdg-ok" : r.judgement === "NG" ? "bdg-ng" : "bdg-na"
+                    }
+                  >
+                    {r.judgement}
+                  </span>
+                  {hasAnomaly && (
+                    <span
+                      className={`anomaly-trigger${isActive ? " anomaly-trigger-active" : ""}`}
+                      onMouseEnter={() => setHoveredId(rowId)}
+                      onMouseLeave={() => setHoveredId(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPinnedId(pinnedId === rowId ? null : rowId);
+                      }}
+                    >
+                      !
+                      {isActive && (
+                        <div
+                          className="anomaly-popup"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="anomaly-popup-hdr">⚠ 異常理由</div>
+                          <div className="anomaly-popup-reason">{anomaly!.reason}</div>
+                          {anomaly!.detectedAt && (
+                            <div className="anomaly-popup-time">
+                              検知日時：{anomaly!.detectedAt}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </span>
+                  )}
+                </td>
+                <td style={{ color: "#555" }}>{r.inspectedAt}</td>
+                <td>{r.inspectedBy}</td>
+                <td style={{ color: "#555" }}>{r.registeredAt}</td>
+                <td>{r.registeredBy}</td>
+              </tr>
+            );
+          })
         )}
       </tbody>
     </table>

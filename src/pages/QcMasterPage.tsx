@@ -15,6 +15,7 @@ import {
   NAME_MAP,
   DUMMY_RESULTS,
   DUMMY_MASTERS,
+  DUMMY_ANOMALIES,
   mkDate,
 } from "../data/qcData";
 import { QC_CSS } from "../components/qc/QcStyles";
@@ -314,7 +315,10 @@ export default function QcMasterPage() {
               <div className="tbl-outer">
                 <div className="tbl-wrap">
                   {viewMode === "result" && (
-                    <ResultTable rows={paged as Parameters<typeof ResultTable>[0]["rows"]} />
+                    <ResultTable
+                      rows={paged as Parameters<typeof ResultTable>[0]["rows"]}
+                      anomalies={DUMMY_ANOMALIES}
+                    />
                   )}
                   {viewMode === "master" && (
                     <MasterTable

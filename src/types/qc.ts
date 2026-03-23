@@ -58,3 +58,9 @@ export type PreviewFile = {
   name: string;
   data: string | null;
 } | null;
+
+export type AnomalyInfo = {
+  rowId: string;
+  reason: string;
+  detectedAt?: string;
+};
