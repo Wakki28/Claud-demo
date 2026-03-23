@@ -72,14 +72,6 @@ export default function QcMasterPage() {
   const [dlgMsg, setDlgMsg] = useState<string | null>(null);
   const [prevFile, setPrevFile] = useState<PreviewFile>(null);
 
-  // バージョン候補
-  const rSrchVersions = rSrch.processCode
-    ? (PROCESS_VERSION_MAP[rSrch.processCode] ?? [])
-    : ALL_VERSIONS;
-  const mSrchVersions = mSrch.processCode
-    ? (PROCESS_VERSION_MAP[mSrch.processCode] ?? [])
-    : ALL_VERSIONS;
-
   // フィルタ済みデータ
   const filtR = useMemo(
     () =>
