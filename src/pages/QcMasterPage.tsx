@@ -296,18 +296,13 @@ export default function QcMasterPage() {
                 </div>
                 <div className="tbar-r">
                   {viewMode === "master" && (
-                    <>
-                      <button className="btn-imp">インポート</button>
-                      <button className="btn-exp">エクスポート</button>
-                      <button
-                        className="btn-new"
-                        onClick={() => setModal({ mode: "create", data: null })}
-                      >
-                        ＋ 新規登録
-                      </button>
-                    </>
+                    <button
+                      className="btn-new"
+                      onClick={() => setModal({ mode: "create", data: null })}
+                    >
+                      ＋ 新規登録
+                    </button>
                   )}
-                  {viewMode === "result" && <button className="btn-exp">エクスポート</button>}
                 </div>
               </div>
 
