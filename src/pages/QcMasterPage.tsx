@@ -9,8 +9,6 @@ import type {
   PreviewFile,
 } from "../types/qc";
 import {
-  PROCESS_VERSION_MAP,
-  ALL_VERSIONS,
   CAT_OPTIONS,
   NAME_MAP,
   DUMMY_RESULTS,
