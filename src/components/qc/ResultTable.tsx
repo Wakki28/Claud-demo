@@ -75,7 +75,7 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
           rows.map((r) => {
             const rowId = toRowId(r);
             const anomaly = anomalyMap.get(rowId);
-            const hasAnomaly = (r.judgement === "NG" || r.judgement === "-") && !!anomaly;
+            const hasAnomaly = r.judgement === "NG" && !!anomaly;
             const isActive = hoveredId === rowId || pinnedId === rowId;
 
             return (
