@@ -16,6 +16,7 @@ export type QcResultItem = {
   registeredBy: string;
   isAdded: boolean;
   isUpdated: boolean;
+  originalData?: OriginalResultData;
 };
 
 export type QcMasterItem = {
@@ -63,4 +64,15 @@ export type AnomalyInfo = {
   rowId: string;
   reason: string;
   detectedAt?: string;
+};
+
+export type OriginalResultData = {
+  measuredValue: string;
+  judgement: "OK" | "NG" | "-";
+  inspectedAt: string;
+  inspectedBy: string;
+  registeredAt: string;
+  registeredBy: string;
+  modifiedAt: string;
+  modifiedBy: string;
 };

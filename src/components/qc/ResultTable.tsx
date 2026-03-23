@@ -13,12 +13,16 @@ function toRowId(r: QcResultItem) {
 export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [pinnedId, setPinnedId] = useState<string | null>(null);
+  const [modPopupId, setModPopupId] = useState<string | null>(null);
 
   const anomalyMap = new Map(anomalies.map((a) => [a.rowId, a]));
 
   // Close pinned popup when clicking outside
   useEffect(() => {
-    const handleOutsideClick = () => setPinnedId(null);
+    const handleOutsideClick = () => {
+      setPinnedId(null);
+      setModPopupId(null);
+    };
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
   }, []);
@@ -77,6 +81,7 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
             const anomaly = anomalyMap.get(rowId);
             const hasAnomaly = r.judgement === "NG" && !!anomaly;
             const isActive = hoveredId === rowId || pinnedId === rowId;
+            const isModPopupOpen = modPopupId === rowId;
 
             return (
               <tr
@@ -91,7 +96,79 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
                 <td>{r.checkItemName}</td>
                 <td style={{ textAlign: "center" }}>
                   {r.isAdded && <span className="badge-added">追加</span>}
-                  {r.isUpdated && <span className="badge-updated">修正</span>}
+                  {r.isUpdated && (
+                    <span
+                      className={`badge-updated mod-badge-btn${isModPopupOpen ? " mod-badge-btn-active" : ""}`}
+                      title="クリックして修正前の情報を確認"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModPopupId(isModPopupOpen ? null : rowId);
+                      }}
+                    >
+                      修正
+                      {isModPopupOpen && r.originalData && (
+                        <div
+                          className="mod-history-popup"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="mod-history-hdr">📋 修正前の情報</div>
+                          <table className="mod-history-tbl">
+                            <tbody>
+                              <tr>
+                                <th>修正日時</th>
+                                <td>{r.originalData.modifiedAt}</td>
+                              </tr>
+                              <tr>
+                                <th>修正者</th>
+                                <td>{r.originalData.modifiedBy}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <div className="mod-history-section">修正前の検査情報</div>
+                          <table className="mod-history-tbl">
+                            <tbody>
+                              <tr>
+                                <th>測定値</th>
+                                <td>{r.originalData.measuredValue}</td>
+                              </tr>
+                              <tr>
+                                <th>判定</th>
+                                <td>
+                                  <span
+                                    className={
+                                      r.originalData.judgement === "OK"
+                                        ? "bdg-ok"
+                                        : r.originalData.judgement === "NG"
+                                          ? "bdg-ng"
+                                          : "bdg-na"
+                                    }
+                                  >
+                                    {r.originalData.judgement}
+                                  </span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <th>検査日</th>
+                                <td>{r.originalData.inspectedAt}</td>
+                              </tr>
+                              <tr>
+                                <th>検査者</th>
+                                <td>{r.originalData.inspectedBy}</td>
+                              </tr>
+                              <tr>
+                                <th>登録日</th>
+                                <td>{r.originalData.registeredAt}</td>
+                              </tr>
+                              <tr>
+                                <th>登録者</th>
+                                <td>{r.originalData.registeredBy}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </span>
+                  )}
                   {!r.isAdded && !r.isUpdated && <span style={{ color: "#ccc" }}>—</span>}
                 </td>
                 <td>{r.measuredValue}</td>

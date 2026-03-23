@@ -1,4 +1,4 @@
-import type { QcResultItem, QcMasterItem, AnomalyInfo } from "../types/qc";
+import type { QcResultItem, QcMasterItem, AnomalyInfo, OriginalResultData } from "../types/qc";
 
 // ── マスタ定義 ───────────────────────────────────────────
 export const PROCESS_VERSION_MAP: Record<string, string[]> = {
@@ -51,6 +51,44 @@ export const mkDate = (daysAgo: number, hour = 9): string => {
 const INS = ["田中 一郎", "鈴木 花子", "佐藤 次郎", "山田 三郎"];
 const REG = ["田中 一郎", "鈴木 花子", "システム連携"];
 
+// ── 修正前データ ─────────────────────────────────────────
+const mkOriginal = (
+  measuredValue: string,
+  judgement: "OK" | "NG" | "-",
+  inspectedAgo: number,
+  inspectedHour: number,
+  inspectedBy: string,
+  registeredAgo: number,
+  registeredHour: number,
+  registeredBy: string,
+  modifiedAgo: number,
+  modifiedBy: string,
+): OriginalResultData => ({
+  measuredValue,
+  judgement,
+  inspectedAt: mkDate(inspectedAgo, inspectedHour),
+  inspectedBy,
+  registeredAt: mkDate(registeredAgo, registeredHour),
+  registeredBy,
+  modifiedAt: mkDate(modifiedAgo, 10),
+  modifiedBy,
+});
+
+const ORIGINAL_DATA: Record<number, OriginalResultData> = {
+  // id:14 P001-v3.0 重量測定
+  14: mkOriginal("6.20 mm", "NG", 6, 9, INS[1], 6, 10, REG[1], 4, REG[0]),
+  // id:19 P002-v1.0 引張荷重
+  19: mkOriginal("6.85 mm", "OK", 11, 8, INS[2], 11, 9, REG[0], 9, REG[1]),
+  // id:29 P003-v1.0 寸法公差
+  29: mkOriginal("8.45 mm", "NG", 12, 8, INS[0], 12, 9, REG[1], 10, REG[2]),
+  // id:30 P003-v1.0 防錆検査
+  30: mkOriginal("8.10 mm", "-", 11, 9, INS[1], 11, 10, REG[2], 9, REG[0]),
+  // id:41 P004-v2.1 摩耗試験
+  41: mkOriginal("9.30 mm", "OK", 5, 9, INS[0], 5, 10, REG[1], 3, REG[2]),
+  // id:42 P004-v2.1 表面粗さ
+  42: mkOriginal("9.80 mm", "OK", 4, 8, INS[1], 4, 9, REG[2], 2, REG[0]),
+};
+
 // ── 実績ダミーデータ 42件 ─────────────────────────────────
 export const DUMMY_RESULTS: QcResultItem[] = [
   // P001 v1.0 — 通常5件
@@ -69,13 +107,13 @@ export const DUMMY_RESULTS: QcResultItem[] = [
   { id: 11, processCode: "P001", masterVersion: "v3.0", checkItemName: "外観検査", measuredValue: "6.21 mm", judgement: "OK", inspectedAt: mkDate(7, 9), inspectedBy: INS[2], registeredAt: mkDate(7, 10), registeredBy: REG[1], isAdded: false, isUpdated: false },
   { id: 12, processCode: "P001", masterVersion: "v3.0", checkItemName: "寸法測定", measuredValue: "6.32 mm", judgement: "-", inspectedAt: mkDate(6, 10), inspectedBy: INS[3], registeredAt: mkDate(6, 11), registeredBy: REG[2], isAdded: false, isUpdated: false },
   { id: 13, processCode: "P001", masterVersion: "v3.0", checkItemName: "硬度測定", measuredValue: "6.43 mm", judgement: "OK", inspectedAt: mkDate(5, 8), inspectedBy: INS[0], registeredAt: mkDate(5, 9), registeredBy: REG[0], isAdded: false, isUpdated: false },
-  { id: 14, processCode: "P001", masterVersion: "v3.0", checkItemName: "重量測定", measuredValue: "6.54 mm", judgement: "OK", inspectedAt: mkDate(4, 9), inspectedBy: INS[1], registeredAt: mkDate(4, 10), registeredBy: REG[1], isAdded: false, isUpdated: true },
+  { id: 14, processCode: "P001", masterVersion: "v3.0", checkItemName: "重量測定", measuredValue: "6.54 mm", judgement: "OK", inspectedAt: mkDate(4, 9), inspectedBy: INS[1], registeredAt: mkDate(4, 10), registeredBy: REG[1], isAdded: false, isUpdated: true, originalData: ORIGINAL_DATA[14] },
   // P002 v1.0 — 通常4件 + 修正1件
   { id: 15, processCode: "P002", masterVersion: "v1.0", checkItemName: "強度試験", measuredValue: "6.65 mm", judgement: "OK", inspectedAt: mkDate(13, 8), inspectedBy: INS[2], registeredAt: mkDate(13, 9), registeredBy: REG[2], isAdded: false, isUpdated: false },
   { id: 16, processCode: "P002", masterVersion: "v1.0", checkItemName: "耐久性試験", measuredValue: "6.76 mm", judgement: "-", inspectedAt: mkDate(12, 9), inspectedBy: INS[3], registeredAt: mkDate(12, 10), registeredBy: REG[0], isAdded: false, isUpdated: false },
   { id: 17, processCode: "P002", masterVersion: "v1.0", checkItemName: "外観検査", measuredValue: "6.87 mm", judgement: "OK", inspectedAt: mkDate(11, 8), inspectedBy: INS[0], registeredAt: mkDate(11, 9), registeredBy: REG[1], isAdded: false, isUpdated: false },
   { id: 18, processCode: "P002", masterVersion: "v1.0", checkItemName: "重量測定", measuredValue: "6.98 mm", judgement: "NG", inspectedAt: mkDate(10, 10), inspectedBy: INS[1], registeredAt: mkDate(10, 11), registeredBy: REG[2], isAdded: false, isUpdated: false },
-  { id: 19, processCode: "P002", masterVersion: "v1.0", checkItemName: "引張荷重", measuredValue: "7.09 mm", judgement: "OK", inspectedAt: mkDate(9, 8), inspectedBy: INS[2], registeredAt: mkDate(9, 9), registeredBy: REG[0], isAdded: false, isUpdated: true },
+  { id: 19, processCode: "P002", masterVersion: "v1.0", checkItemName: "引張荷重", measuredValue: "7.09 mm", judgement: "OK", inspectedAt: mkDate(9, 8), inspectedBy: INS[2], registeredAt: mkDate(9, 9), registeredBy: REG[0], isAdded: false, isUpdated: true, originalData: ORIGINAL_DATA[19] },
   // P002 v2.0 — 通常3件 + 追加2件
   { id: 20, processCode: "P002", masterVersion: "v2.0", checkItemName: "強度試験", measuredValue: "7.20 mm", judgement: "NG", inspectedAt: mkDate(8, 9), inspectedBy: INS[3], registeredAt: mkDate(8, 10), registeredBy: REG[1], isAdded: false, isUpdated: false },
   { id: 21, processCode: "P002", masterVersion: "v2.0", checkItemName: "外観検査", measuredValue: "7.31 mm", judgement: "OK", inspectedAt: mkDate(7, 8), inspectedBy: INS[0], registeredAt: mkDate(7, 9), registeredBy: REG[2], isAdded: false, isUpdated: false },
@@ -87,8 +125,8 @@ export const DUMMY_RESULTS: QcResultItem[] = [
   { id: 26, processCode: "P003", masterVersion: "v1.0", checkItemName: "外観検査", measuredValue: "7.86 mm", judgement: "NG", inspectedAt: mkDate(13, 9), inspectedBy: INS[1], registeredAt: mkDate(13, 10), registeredBy: REG[1], isAdded: false, isUpdated: false },
   { id: 27, processCode: "P003", masterVersion: "v1.0", checkItemName: "色彩検査", measuredValue: "7.97 mm", judgement: "OK", inspectedAt: mkDate(12, 8), inspectedBy: INS[2], registeredAt: mkDate(12, 9), registeredBy: REG[2], isAdded: false, isUpdated: false },
   { id: 28, processCode: "P003", masterVersion: "v1.0", checkItemName: "引張試験", measuredValue: "8.08 mm", judgement: "OK", inspectedAt: mkDate(11, 10), inspectedBy: INS[3], registeredAt: mkDate(11, 11), registeredBy: REG[0], isAdded: false, isUpdated: false },
-  { id: 29, processCode: "P003", masterVersion: "v1.0", checkItemName: "寸法公差", measuredValue: "8.19 mm", judgement: "OK", inspectedAt: mkDate(10, 8), inspectedBy: INS[0], registeredAt: mkDate(10, 9), registeredBy: REG[1], isAdded: false, isUpdated: true },
-  { id: 30, processCode: "P003", masterVersion: "v1.0", checkItemName: "防錆検査", measuredValue: "8.30 mm", judgement: "OK", inspectedAt: mkDate(9, 9), inspectedBy: INS[1], registeredAt: mkDate(9, 10), registeredBy: REG[2], isAdded: false, isUpdated: true },
+  { id: 29, processCode: "P003", masterVersion: "v1.0", checkItemName: "寸法公差", measuredValue: "8.19 mm", judgement: "OK", inspectedAt: mkDate(10, 8), inspectedBy: INS[0], registeredAt: mkDate(10, 9), registeredBy: REG[1], isAdded: false, isUpdated: true, originalData: ORIGINAL_DATA[29] },
+  { id: 30, processCode: "P003", masterVersion: "v1.0", checkItemName: "防錆検査", measuredValue: "8.30 mm", judgement: "OK", inspectedAt: mkDate(9, 9), inspectedBy: INS[1], registeredAt: mkDate(9, 10), registeredBy: REG[2], isAdded: false, isUpdated: true, originalData: ORIGINAL_DATA[30] },
   // P004 v1.0 — 通常5件
   { id: 31, processCode: "P004", masterVersion: "v1.0", checkItemName: "引張試験", measuredValue: "8.41 mm", judgement: "OK", inspectedAt: mkDate(8, 8), inspectedBy: INS[2], registeredAt: mkDate(8, 9), registeredBy: REG[0], isAdded: false, isUpdated: false },
   { id: 32, processCode: "P004", masterVersion: "v1.0", checkItemName: "外観検査", measuredValue: "8.52 mm", judgement: "OK", inspectedAt: mkDate(7, 10), inspectedBy: INS[3], registeredAt: mkDate(7, 11), registeredBy: REG[1], isAdded: false, isUpdated: false },
@@ -102,8 +140,8 @@ export const DUMMY_RESULTS: QcResultItem[] = [
   { id: 39, processCode: "P004", masterVersion: "v2.0", checkItemName: "硬度測定", measuredValue: "9.29 mm", judgement: "OK", inspectedAt: mkDate(2, 8), inspectedBy: INS[2], registeredAt: mkDate(2, 9), registeredBy: REG[2], isAdded: true, isUpdated: false },
   { id: 40, processCode: "P004", masterVersion: "v2.0", checkItemName: "耐熱試験", measuredValue: "9.40 mm", judgement: "OK", inspectedAt: mkDate(1, 10), inspectedBy: INS[3], registeredAt: mkDate(1, 11), registeredBy: REG[0], isAdded: true, isUpdated: false },
   // P004 v2.1 — 修正2件
-  { id: 41, processCode: "P004", masterVersion: "v2.1", checkItemName: "摩耗試験", measuredValue: "9.51 mm", judgement: "OK", inspectedAt: mkDate(3, 9), inspectedBy: INS[0], registeredAt: mkDate(3, 10), registeredBy: REG[1], isAdded: false, isUpdated: true },
-  { id: 42, processCode: "P004", masterVersion: "v2.1", checkItemName: "表面粗さ", measuredValue: "9.62 mm", judgement: "NG", inspectedAt: mkDate(2, 8), inspectedBy: INS[1], registeredAt: mkDate(2, 9), registeredBy: REG[2], isAdded: false, isUpdated: true },
+  { id: 41, processCode: "P004", masterVersion: "v2.1", checkItemName: "摩耗試験", measuredValue: "9.51 mm", judgement: "OK", inspectedAt: mkDate(3, 9), inspectedBy: INS[0], registeredAt: mkDate(3, 10), registeredBy: REG[1], isAdded: false, isUpdated: true, originalData: ORIGINAL_DATA[41] },
+  { id: 42, processCode: "P004", masterVersion: "v2.1", checkItemName: "表面粗さ", measuredValue: "9.62 mm", judgement: "NG", inspectedAt: mkDate(2, 8), inspectedBy: INS[1], registeredAt: mkDate(2, 9), registeredBy: REG[2], isAdded: false, isUpdated: true, originalData: ORIGINAL_DATA[42] },
 ];
 
 // ── 異常理由ダミーデータ ──────────────────────────────────

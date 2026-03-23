@@ -141,4 +141,15 @@ tr.row-edited:hover td{background:#e4eefb;}
 .anomaly-popup-hdr{font-size:11px;font-weight:700;color:#c62828;display:flex;align-items:center;gap:4px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #f5dada;}
 .anomaly-popup-reason{color:#333;font-size:12px;line-height:1.6;}
 .anomaly-popup-time{font-size:11px;color:#888;margin-top:6px;padding-top:5px;border-top:1px solid #edf0f5;}
+.mod-badge-btn{cursor:pointer;position:relative;user-select:none;}
+.mod-badge-btn:hover{background:#fed7aa;border-color:#f97316;}
+.mod-badge-btn-active{background:#fed7aa;border-color:#f97316;}
+.mod-history-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1px solid #dde2ea;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.22),0 1px 6px rgba(0,0,0,.1);min-width:300px;max-width:380px;z-index:9999;padding:14px 16px;font-size:12px;color:#333;white-space:normal;word-break:break-word;line-height:1.6;text-align:left;}
+@supports(anchor-name:--test){.mod-badge-btn-active{anchor-name:--active-mod;}.mod-history-popup{position:fixed;position-anchor:--active-mod;top:anchor(bottom);left:anchor(left);transform:none;margin-top:6px;position-try-fallbacks:flip-block,flip-inline,flip-block flip-inline;}}
+.mod-history-hdr{font-size:12px;font-weight:700;color:#c2410c;display:flex;align-items:center;gap:4px;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid #fed7aa;}
+.mod-history-section{font-size:11px;font-weight:600;color:#555;margin:10px 0 5px;padding-top:8px;border-top:1px solid #edf0f5;}
+.mod-history-tbl{width:100%;border-collapse:collapse;}
+.mod-history-tbl th{font-size:11px;color:#888;font-weight:500;text-align:left;padding:3px 6px 3px 0;white-space:nowrap;width:60px;}
+.mod-history-tbl td{font-size:12px;color:#333;padding:3px 0;}
 `;
+
