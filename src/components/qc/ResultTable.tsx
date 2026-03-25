@@ -43,7 +43,7 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
           <th rowSpan={2} style={{ verticalAlign: "middle" }}>
             測定値
           </th>
-          <th rowSpan={2} style={{ verticalAlign: "middle" }}>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center" }}>
             判定
           </th>
           <th
@@ -89,22 +89,18 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
                 className={r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}
               >
                 <td>
-                  <span className="ver-badge">
-                    {r.processCode}-{r.masterVersion}
-                  </span>
+                  {r.processCode}-{r.masterVersion}
                 </td>
                 <td>{r.checkItemName}</td>
-                <td style={{ textAlign: "center" }}>
-                  {r.isAdded && <span className="badge-added">追加</span>}
+                <td
+                  style={{ textAlign: "center" }}
+                  className={r.isUpdated ? `change-type-cell${isModPopupOpen ? " mod-badge-btn-active" : ""}` : undefined}
+                  title={r.isUpdated ? "クリックして修正前の情報を確認" : undefined}
+                  onClick={r.isUpdated ? (e) => { e.stopPropagation(); setModPopupId(isModPopupOpen ? null : rowId); } : undefined}
+                >
+                  {r.isAdded && <span>追加</span>}
                   {r.isUpdated && (
-                    <span
-                      className={`badge-updated mod-badge-btn${isModPopupOpen ? " mod-badge-btn-active" : ""}`}
-                      title="クリックして修正前の情報を確認"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setModPopupId(isModPopupOpen ? null : rowId);
-                      }}
-                    >
+                    <>
                       修正
                       {isModPopupOpen && r.originalData && (
                         <div
@@ -167,12 +163,12 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
                           </table>
                         </div>
                       )}
-                    </span>
+                    </>
                   )}
                   {!r.isAdded && !r.isUpdated && <span style={{ color: "#ccc" }}>—</span>}
                 </td>
                 <td>{r.measuredValue}</td>
-                <td>
+                <td style={{ textAlign: "center" }}>
                   <span
                     className={
                       r.judgement === "OK" ? "bdg-ok" : r.judgement === "NG" ? "bdg-ng" : "bdg-na"
