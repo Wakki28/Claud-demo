@@ -43,7 +43,7 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
           <th rowSpan={2} style={{ verticalAlign: "middle" }}>
             測定値
           </th>
-          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center" }}>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", width: 64, minWidth: 64 }}>
             判定
           </th>
           <th
@@ -168,7 +168,7 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
                   {!r.isAdded && !r.isUpdated && <span style={{ color: "#ccc" }}>—</span>}
                 </td>
                 <td>{r.measuredValue}</td>
-                <td style={{ textAlign: "center" }}>
+                <td style={{ textAlign: "center", width: 64, minWidth: 64 }}>
                   <span
                     className={
                       r.judgement === "OK" ? "bdg-ok" : r.judgement === "NG" ? "bdg-ng" : "bdg-na"
