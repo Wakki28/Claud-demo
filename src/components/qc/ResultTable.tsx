@@ -98,10 +98,10 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
                   title={r.isUpdated ? "クリックして修正前の情報を確認" : undefined}
                   onClick={r.isUpdated ? (e) => { e.stopPropagation(); setModPopupId(isModPopupOpen ? null : rowId); } : undefined}
                 >
-                  {r.isAdded && <span>追加</span>}
+                  {r.isAdded && <span className="badge-added">追加</span>}
                   {r.isUpdated && (
                     <>
-                      修正
+                      <span className="badge-updated">修正</span>
                       {isModPopupOpen && r.originalData && (
                         <div
                           className="mod-history-popup"
