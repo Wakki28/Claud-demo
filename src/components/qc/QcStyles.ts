@@ -44,9 +44,12 @@ export const QC_CSS = `
 .ps-area{display:flex;align-items:center;gap:4px;font-size:13px;color:#555;}
 .ps-sel{border:1px solid #afc0d2;border-radius:3px;padding:3px 18px 3px 6px;font-size:12px;height:26px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='%23888'/%3E%3C/svg%3E") no-repeat right 5px center;appearance:none;min-width:56px;}
 .btn-new{background:#29a745;color:#fff;border:none;border-radius:3px;padding:0 12px;height:28px;font-size:12px;cursor:pointer;white-space:nowrap;}
-.btn-new:hover{background:#228a3a;}
+.btn-new:hover:not(:disabled){background:#228a3a;}
+.btn-new:disabled{opacity:0.45;cursor:not-allowed;}
 .btn-imp,.btn-exp{background:#fff;color:#444;border:1px solid #afc0d2;border-radius:3px;padding:0 10px;height:28px;font-size:12px;cursor:pointer;white-space:nowrap;}
-.btn-imp:hover,.btn-exp:hover{background:#f4f6f9;}
+.btn-imp:hover:not(:disabled),.btn-exp:hover:not(:disabled){background:#f4f6f9;}
+.btn-imp:disabled,.btn-exp:disabled{opacity:0.45;cursor:not-allowed;}
+.tbl-cb{width:32px;text-align:center;padding:4px 2px;}
 .tbl-outer{border:1px solid #dde2ea;border-radius:3px;background:#fff;overflow:hidden;}
 .tbl-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:12px;}

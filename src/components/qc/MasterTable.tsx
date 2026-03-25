@@ -4,8 +4,8 @@ type MasterTableProps = {
   rows: QcMasterItem[];
   newIds: Set<number>;
   editedIds: Set<number>;
-  onEdit: (item: QcMasterItem) => void;
-  onDelete: (item: QcMasterItem) => void;
+  selectedIds: Set<number>;
+  onSelectionChange: (ids: Set<number>) => void;
   onPreview: (file: PreviewFile) => void;
 };
 
@@ -13,14 +13,39 @@ export default function MasterTable({
   rows,
   newIds,
   editedIds,
-  onEdit,
-  onDelete,
+  selectedIds,
+  onSelectionChange,
   onPreview,
 }: MasterTableProps) {
+  const handleRowCheck = (id: number, checked: boolean) => {
+    const next = new Set(selectedIds);
+    if (checked) next.add(id);
+    else next.delete(id);
+    onSelectionChange(next);
+  };
+
+  const allChecked = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+  const someChecked = rows.some((r) => selectedIds.has(r.id));
+
+  const handleHeaderCheck = (checked: boolean) => {
+    const next = new Set(selectedIds);
+    if (checked) rows.forEach((r) => next.add(r.id));
+    else rows.forEach((r) => next.delete(r.id));
+    onSelectionChange(next);
+  };
+
   return (
     <table>
       <thead>
         <tr>
+          <th className="tbl-cb">
+            <input
+              type="checkbox"
+              checked={allChecked}
+              ref={(el) => { if (el) el.indeterminate = !allChecked && someChecked; }}
+              onChange={(e) => handleHeaderCheck(e.target.checked)}
+            />
+          </th>
           <th>工程CD</th>
           <th>バージョン</th>
           <th>検査項目名</th>
@@ -33,7 +58,6 @@ export default function MasterTable({
           <th>規格中央値</th>
           <th>参照ファイル</th>
           <th>更新日時</th>
-          <th>操作</th>
         </tr>
       </thead>
       <tbody>
@@ -51,12 +75,22 @@ export default function MasterTable({
               idx === 0 ||
               rows[idx - 1].processCode !== m.processCode ||
               rows[idx - 1].masterVersion !== m.masterVersion;
+            const isSelected = selectedIds.has(m.id);
 
             return (
               <tr
                 key={m.id}
                 className={`${isGFirst ? "group-first" : ""} ${isNew ? "row-new" : isEdited ? "row-edited" : ""}`.trim()}
+                onClick={() => handleRowCheck(m.id, !isSelected)}
+                style={{ cursor: "pointer" }}
               >
+                <td className="tbl-cb" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => handleRowCheck(m.id, e.target.checked)}
+                  />
+                </td>
                 <td>
                   {m.processCode}
                   {isNew && <span className="tag-new">NEW</span>}
@@ -75,9 +109,10 @@ export default function MasterTable({
                   {m.referenceFile ? (
                     <span
                       className="file-link"
-                      onClick={() =>
-                        onPreview({ name: m.referenceFile, data: m.referenceFileData })
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPreview({ name: m.referenceFile, data: m.referenceFileData });
+                      }}
                     >
                       📎 {m.referenceFile}
                     </span>
@@ -86,14 +121,6 @@ export default function MasterTable({
                   )}
                 </td>
                 <td style={{ color: "#888", fontSize: 11 }}>{m.updatedAt}</td>
-                <td>
-                  <button className="btn-edt" onClick={() => onEdit(m)}>
-                    編集
-                  </button>
-                  <button className="btn-dlt" onClick={() => onDelete(m)}>
-                    削除
-                  </button>
-                </td>
               </tr>
             );
           })

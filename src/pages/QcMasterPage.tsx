@@ -67,6 +67,9 @@ export default function QcMasterPage() {
   const [newIds, setNewIds] = useState<Set<number>>(new Set());
   const [editedIds, setEditedIds] = useState<Set<number>>(new Set());
 
+  // チェックボックス選択
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
   // モーダル・ダイアログ
   const [modal, setModal] = useState<ModalState>(null);
   const [dlgMsg, setDlgMsg] = useState<string | null>(null);
@@ -134,6 +137,7 @@ export default function QcMasterPage() {
   const handleTabChange = (m: QcViewMode) => {
     setViewMode(m);
     setCurrentPage(1);
+    setSelectedIds(new Set());
   };
 
   const handlePageSizeChange = (v: number) => {
@@ -172,9 +176,18 @@ export default function QcMasterPage() {
     setModal(null);
   };
 
-  const handleDeleteMaster = (item: QcMasterItem) => {
-    if (!window.confirm(`「${item.processCode} / ${item.checkItemName}」を削除しますか？`)) return;
-    setMasters((p) => p.filter((m) => m.id !== item.id));
+  const handleEditSelected = () => {
+    if (selectedIds.size !== 1) return;
+    const id = [...selectedIds][0];
+    const item = masters.find((m) => m.id === id);
+    if (item) setModal({ mode: "edit", data: item });
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`選択した ${selectedIds.size} 件を削除しますか？`)) return;
+    setMasters((p) => p.filter((m) => !selectedIds.has(m.id)));
+    setSelectedIds(new Set());
     setDlgMsg("削除完了しました。");
   };
 
@@ -297,13 +310,27 @@ export default function QcMasterPage() {
                         className="btn-new"
                         onClick={() => setModal({ mode: "create", data: null })}
                       >
-                        ＋ 新規登録
+                        ＋ 追加
+                      </button>
+                      <button
+                        className="btn-imp"
+                        disabled={selectedIds.size !== 1}
+                        onClick={handleEditSelected}
+                      >
+                        ✏ 編集
+                      </button>
+                      <button
+                        className="btn-imp"
+                        disabled={selectedIds.size === 0}
+                        onClick={handleDeleteSelected}
+                      >
+                        🗑 削除（{selectedIds.size}）
                       </button>
                       <button
                         className="btn-imp"
                         onClick={() => setIeModal({ tab: "import" })}
                       >
-                        ⬆ インポート
+                        ↓ インポート
                       </button>
                     </>
                   )}
@@ -311,7 +338,7 @@ export default function QcMasterPage() {
                     className="btn-exp"
                     onClick={() => setIeModal({ tab: "export" })}
                   >
-                    ⬇ エクスポート
+                    ↑ エクスポート
                   </button>
                 </div>
               </div>
@@ -330,8 +357,8 @@ export default function QcMasterPage() {
                       rows={paged as Parameters<typeof MasterTable>[0]["rows"]}
                       newIds={newIds}
                       editedIds={editedIds}
-                      onEdit={(item) => setModal({ mode: "edit", data: item })}
-                      onDelete={handleDeleteMaster}
+                      selectedIds={selectedIds}
+                      onSelectionChange={setSelectedIds}
                       onPreview={setPrevFile}
                     />
                   )}
