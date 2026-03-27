@@ -7,9 +7,14 @@ export type QcResultItem = {
   id: number;
   processCode: string;
   masterVersion: string;
+  inspectionStage: string;
+  revisionNumber: number;
   checkItemName: string;
   measuredValue: string;
   judgement: "OK" | "NG" | "-";
+  overallResult: "OK" | "NG" | null;
+  overallResultAt?: string;
+  overallResultBy?: string;
   inspectedAt: string;
   inspectedBy: string;
   registeredAt: string;

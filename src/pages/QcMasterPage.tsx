@@ -3,6 +3,7 @@ import type {
   QcViewMode,
   QcPageSize,
   QcMasterItem,
+  QcResultItem,
   ResultSearchState,
   MasterSearchState,
   ModalState,
@@ -62,6 +63,9 @@ export default function QcMasterPage() {
   const [mSrch, setMSrch] = useState<MasterSearchState>(EMPTY_M_SRCH);
   const [mApp, setMApp] = useState<MasterSearchState>(EMPTY_M_SRCH);
 
+  // 実績データ
+  const [results, setResults] = useState<QcResultItem[]>(DUMMY_RESULTS);
+
   // マスタデータ
   const [masters, setMasters] = useState<QcMasterItem[]>(DUMMY_MASTERS);
   const [newIds, setNewIds] = useState<Set<number>>(new Set());
@@ -79,7 +83,7 @@ export default function QcMasterPage() {
   // フィルタ済みデータ
   const filtR = useMemo(
     () =>
-      DUMMY_RESULTS.filter((r) => {
+      results.filter((r) => {
         if (rApp.processCode && r.processCode !== rApp.processCode) return false;
         if (rApp.masterVersion && r.masterVersion !== rApp.masterVersion) return false;
         if (rApp.checkItemName && !r.checkItemName.includes(rApp.checkItemName)) return false;
@@ -89,7 +93,7 @@ export default function QcMasterPage() {
         if (rApp.changeType === "normal") return !r.isAdded && !r.isUpdated;
         return true;
       }),
-    [rApp],
+    [results, rApp],
   );
 
   const filtM = useMemo(
@@ -195,9 +199,24 @@ export default function QcMasterPage() {
     setDlgMsg("インポートが完了しました。");
   };
 
+  const handleOverallResultChange = (id: number, value: "OK" | "NG" | null) => {
+    setResults((prev) =>
+      prev.map((r) =>
+        r.id === id
+          ? {
+              ...r,
+              overallResult: value,
+              overallResultAt: value != null ? mkDate(0) : undefined,
+              overallResultBy: value != null ? "高宮 織太" : undefined,
+            }
+          : r,
+      ),
+    );
+  };
+
   // 実績サマリー件数
-  const totalAdded = DUMMY_RESULTS.filter((r) => r.isAdded).length;
-  const totalUpdated = DUMMY_RESULTS.filter((r) => r.isUpdated).length;
+  const totalAdded = results.filter((r) => r.isAdded).length;
+  const totalUpdated = results.filter((r) => r.isUpdated).length;
 
   return (
     <>
@@ -350,6 +369,7 @@ export default function QcMasterPage() {
                     <ResultTable
                       rows={paged as Parameters<typeof ResultTable>[0]["rows"]}
                       anomalies={DUMMY_ANOMALIES}
+                      onOverallResultChange={handleOverallResultChange}
                     />
                   )}
                   {viewMode === "master" && (
@@ -395,7 +415,7 @@ export default function QcMasterPage() {
             viewMode={viewMode}
             initialTab={ieModal.tab}
             masterData={masters}
-            resultData={DUMMY_RESULTS}
+            resultData={results}
             onClose={() => setIeModal(null)}
             onImport={handleImport}
           />

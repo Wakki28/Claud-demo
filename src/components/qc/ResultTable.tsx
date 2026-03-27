@@ -4,16 +4,18 @@ import type { QcResultItem, AnomalyInfo } from "../../types/qc";
 type ResultTableProps = {
   rows: QcResultItem[];
   anomalies?: AnomalyInfo[];
+  onOverallResultChange?: (id: number, value: "OK" | "NG" | null) => void;
 };
 
 function toRowId(r: QcResultItem) {
   return `${r.processCode}-${r.masterVersion}-${r.checkItemName}`;
 }
 
-export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) {
+export default function ResultTable({ rows, anomalies = [], onOverallResultChange }: ResultTableProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [pinnedId, setPinnedId] = useState<string | null>(null);
   const [modPopupId, setModPopupId] = useState<string | null>(null);
+  const [editingOverallId, setEditingOverallId] = useState<number | null>(null);
 
   const anomalyMap = new Map(anomalies.map((a) => [a.rowId, a]));
 
@@ -22,10 +24,24 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
     const handleOutsideClick = () => {
       setPinnedId(null);
       setModPopupId(null);
+      setEditingOverallId(null);
     };
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
   }, []);
+
+  const handleOverallClick = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
+    setEditingOverallId(editingOverallId === id ? null : id);
+    setModPopupId(null);
+    setPinnedId(null);
+  };
+
+  const handleOverallSelect = (e: React.MouseEvent, id: number, value: "OK" | "NG" | null) => {
+    e.stopPropagation();
+    onOverallResultChange?.(id, value);
+    setEditingOverallId(null);
+  };
 
   return (
     <table>
@@ -33,6 +49,12 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
         <tr>
           <th rowSpan={2} style={{ verticalAlign: "middle" }}>
             工程 / バージョン
+          </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 56 }}>
+            検査段階
+          </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 64 }}>
+            改版
           </th>
           <th rowSpan={2} style={{ verticalAlign: "middle" }}>
             検査項目名
@@ -45,6 +67,9 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
           </th>
           <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", width: 64, minWidth: 64 }}>
             判定
+          </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 72 }}>
+            総合結果
           </th>
           <th
             colSpan={2}
@@ -71,7 +96,7 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
       <tbody>
         {rows.length === 0 ? (
           <tr>
-            <td colSpan={9} className="no-data">
+            <td colSpan={12} className="no-data">
               データがありません
             </td>
           </tr>
@@ -82,6 +107,7 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
             const hasAnomaly = r.judgement === "NG" && !!anomaly;
             const isActive = hoveredId === rowId || pinnedId === rowId;
             const isModPopupOpen = modPopupId === rowId;
+            const isEditingOverall = editingOverallId === r.id;
 
             return (
               <tr
@@ -91,6 +117,10 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
                 <td>
                   {r.processCode}-{r.masterVersion}
                 </td>
+                {/* 検査段階 */}
+                <td className="stage-cell">{r.inspectionStage}</td>
+                {/* 改版 */}
+                <td className="revision-cell">改版{r.revisionNumber}</td>
                 <td>{r.checkItemName}</td>
                 <td
                   style={{ textAlign: "center" }}
@@ -202,6 +232,43 @@ export default function ResultTable({ rows, anomalies = [] }: ResultTableProps) 
                         </div>
                       )}
                     </span>
+                  )}
+                </td>
+                {/* 総合結果 */}
+                <td
+                  className="overall-cell"
+                  title={isEditingOverall ? undefined : r.overallResult != null ? "クリックして修正" : "クリックして登録"}
+                  onClick={(e) => handleOverallClick(e, r.id)}
+                >
+                  {isEditingOverall ? (
+                    <div className="overall-edit-wrap" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        className="btn-overall-ok"
+                        onClick={(e) => handleOverallSelect(e, r.id, "OK")}
+                      >
+                        OK
+                      </button>
+                      <button
+                        className="btn-overall-ng"
+                        onClick={(e) => handleOverallSelect(e, r.id, "NG")}
+                      >
+                        NG
+                      </button>
+                      {r.overallResult != null && (
+                        <button
+                          className="btn-overall-cancel"
+                          onClick={(e) => handleOverallSelect(e, r.id, null)}
+                        >
+                          解除
+                        </button>
+                      )}
+                    </div>
+                  ) : r.overallResult === "OK" ? (
+                    <span className="bdg-ok">OK</span>
+                  ) : r.overallResult === "NG" ? (
+                    <span className="bdg-ng">NG</span>
+                  ) : (
+                    <span style={{ color: "#ccc" }}>—</span>
                   )}
                 </td>
                 <td style={{ color: "#555" }}>{r.inspectedAt}</td>
