@@ -3,18 +3,17 @@
 export type QcViewMode = "result" | "master";
 export type QcPageSize = 10 | 20 | 50;
 
+// 正しい階層：工程 > バージョン > 改版 > 検査項目 > 検査段階 > 検査結果(N数)
 export type QcResultItem = {
   id: number;
   processCode: string;
   masterVersion: string;
-  inspectionStage: string;
   revisionNumber: number;
-  checkItemName: string;
+  checkItemName: string;      // 検査項目（改版の下）
+  inspectionStage: string;    // 検査段階（検査項目の下：初/中1/中2.../終）
+  nIndex: number;             // N数番号（1始まり）
   measuredValue: string;
   judgement: "OK" | "NG" | "-";
-  overallResult: "OK" | "NG" | null;
-  overallResultAt?: string;
-  overallResultBy?: string;
   inspectedAt: string;
   inspectedBy: string;
   registeredAt: string;
@@ -22,6 +21,16 @@ export type QcResultItem = {
   isAdded: boolean;
   isUpdated: boolean;
   originalData?: OriginalResultData;
+};
+
+// 総合結果（工程 × バージョン × 改版 の単位）
+export type QcGroupOverall = {
+  processCode: string;
+  masterVersion: string;
+  revisionNumber: number;
+  overallResult: "OK" | "NG" | null;
+  overallResultAt?: string;
+  overallResultBy?: string;
 };
 
 export type QcMasterItem = {

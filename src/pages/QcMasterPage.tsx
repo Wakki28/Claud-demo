@@ -4,6 +4,7 @@ import type {
   QcPageSize,
   QcMasterItem,
   QcResultItem,
+  QcGroupOverall,
   ResultSearchState,
   MasterSearchState,
   ModalState,
@@ -15,6 +16,7 @@ import {
   DUMMY_RESULTS,
   DUMMY_MASTERS,
   DUMMY_ANOMALIES,
+  DUMMY_OVERALL_RESULTS,
   mkDate,
 } from "../data/qcData";
 import { QC_CSS } from "../components/qc/QcStyles";
@@ -44,6 +46,14 @@ const EMPTY_M_SRCH: MasterSearchState = {
   checkMethodType: "",
 };
 
+// 検査段階のソート順（初→中1〜中N→終）
+const stageOrder = (s: string): number => {
+  if (s === "初") return 0;
+  if (s === "終") return 9999;
+  const m = s.match(/^中(\d+)$/);
+  return m ? parseInt(m[1], 10) : 1;
+};
+
 export default function QcMasterPage() {
   // セレクタ
   const [category, setCategory] = useState(CAT_OPTIONS[0]);
@@ -64,7 +74,10 @@ export default function QcMasterPage() {
   const [mApp, setMApp] = useState<MasterSearchState>(EMPTY_M_SRCH);
 
   // 実績データ
-  const [results, setResults] = useState<QcResultItem[]>(DUMMY_RESULTS);
+  const [results] = useState<QcResultItem[]>(DUMMY_RESULTS);
+
+  // 総合結果（工程 × バージョン × 改版 単位）
+  const [overallResults, setOverallResults] = useState<QcGroupOverall[]>(DUMMY_OVERALL_RESULTS);
 
   // マスタデータ
   const [masters, setMasters] = useState<QcMasterItem[]>(DUMMY_MASTERS);
@@ -96,6 +109,25 @@ export default function QcMasterPage() {
     [results, rApp],
   );
 
+  // 正しい階層順にソート：工程 → バージョン → 改版 → 検査項目 → 検査段階（初→中→終）→ N数
+  const sortedR = useMemo(
+    () =>
+      [...filtR].sort((a, b) => {
+        const pc = a.processCode.localeCompare(b.processCode);
+        if (pc !== 0) return pc;
+        const ver = a.masterVersion.localeCompare(b.masterVersion);
+        if (ver !== 0) return ver;
+        const rev = a.revisionNumber - b.revisionNumber;
+        if (rev !== 0) return rev;
+        const item = a.checkItemName.localeCompare(b.checkItemName, "ja");
+        if (item !== 0) return item;
+        const stg = stageOrder(a.inspectionStage) - stageOrder(b.inspectionStage);
+        if (stg !== 0) return stg;
+        return a.nIndex - b.nIndex;
+      }),
+    [filtR],
+  );
+
   const filtM = useMemo(
     () =>
       masters.filter((m) => {
@@ -117,7 +149,7 @@ export default function QcMasterPage() {
     [filtM],
   );
 
-  const data = viewMode === "result" ? filtR : sortedM;
+  const data = viewMode === "result" ? sortedR : sortedM;
   const totalPages = Math.ceil(data.length / pageSize);
   const paged = data.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -199,19 +231,31 @@ export default function QcMasterPage() {
     setDlgMsg("インポートが完了しました。");
   };
 
-  const handleOverallResultChange = (id: number, value: "OK" | "NG" | null) => {
-    setResults((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              overallResult: value,
-              overallResultAt: value != null ? mkDate(0) : undefined,
-              overallResultBy: value != null ? "高宮 織太" : undefined,
-            }
-          : r,
-      ),
-    );
+  // 総合結果の更新（工程 × バージョン × 改版 単位）
+  const handleOverallResultChange = (
+    processCode: string,
+    masterVersion: string,
+    revisionNumber: number,
+    value: "OK" | "NG" | null,
+  ) => {
+    const key = `${processCode}-${masterVersion}-${revisionNumber}`;
+    setOverallResults((prev) => {
+      const idx = prev.findIndex(
+        (o) => `${o.processCode}-${o.masterVersion}-${o.revisionNumber}` === key,
+      );
+      const updated: QcGroupOverall = {
+        processCode,
+        masterVersion,
+        revisionNumber,
+        overallResult: value,
+        overallResultAt: value != null ? mkDate(0) : undefined,
+        overallResultBy: value != null ? "高宮 織太" : undefined,
+      };
+      if (idx >= 0) {
+        return prev.map((o, i) => (i === idx ? updated : o));
+      }
+      return [...prev, updated];
+    });
   };
 
   // 実績サマリー件数
@@ -369,6 +413,7 @@ export default function QcMasterPage() {
                     <ResultTable
                       rows={paged as Parameters<typeof ResultTable>[0]["rows"]}
                       anomalies={DUMMY_ANOMALIES}
+                      overallResults={overallResults}
                       onOverallResultChange={handleOverallResultChange}
                     />
                   )}
@@ -416,6 +461,7 @@ export default function QcMasterPage() {
             initialTab={ieModal.tab}
             masterData={masters}
             resultData={results}
+            overallResults={overallResults}
             onClose={() => setIeModal(null)}
             onImport={handleImport}
           />

@@ -1,46 +1,123 @@
-import { useState, useEffect } from "react";
-import type { QcResultItem, AnomalyInfo } from "../../types/qc";
+import { useState, useMemo, useEffect } from "react";
+import type { QcResultItem, QcGroupOverall, AnomalyInfo } from "../../types/qc";
 
 type ResultTableProps = {
   rows: QcResultItem[];
   anomalies?: AnomalyInfo[];
-  onOverallResultChange?: (id: number, value: "OK" | "NG" | null) => void;
+  overallResults: QcGroupOverall[];
+  onOverallResultChange?: (
+    processCode: string,
+    masterVersion: string,
+    revisionNumber: number,
+    value: "OK" | "NG" | null,
+  ) => void;
 };
 
-function toRowId(r: QcResultItem) {
-  return `${r.processCode}-${r.masterVersion}-${r.checkItemName}`;
+interface RowRenderInfo {
+  row: QcResultItem;
+  groupKey: string;
+  groupSpan: number | null;
+  itemSpan: number | null;
+  stageSpan: number | null;
 }
 
-export default function ResultTable({ rows, anomalies = [], onOverallResultChange }: ResultTableProps) {
+function toAnomalyKey(r: QcResultItem) {
+  return `${r.processCode}-${r.masterVersion}-rev${r.revisionNumber}-${r.checkItemName}`;
+}
+
+export default function ResultTable({
+  rows,
+  anomalies = [],
+  overallResults,
+  onOverallResultChange,
+}: ResultTableProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [pinnedId, setPinnedId] = useState<string | null>(null);
   const [modPopupId, setModPopupId] = useState<string | null>(null);
-  const [editingOverallId, setEditingOverallId] = useState<number | null>(null);
+  const [editingOverallKey, setEditingOverallKey] = useState<string | null>(null);
 
-  const anomalyMap = new Map(anomalies.map((a) => [a.rowId, a]));
+  const anomalyMap = useMemo(
+    () => new Map(anomalies.map((a) => [a.rowId, a])),
+    [anomalies],
+  );
 
-  // Close pinned popup when clicking outside
+  const overallMap = useMemo(() => {
+    const m = new Map<string, QcGroupOverall>();
+    overallResults.forEach((o) => {
+      m.set(`${o.processCode}-${o.masterVersion}-${o.revisionNumber}`, o);
+    });
+    return m;
+  }, [overallResults]);
+
   useEffect(() => {
     const handleOutsideClick = () => {
       setPinnedId(null);
       setModPopupId(null);
-      setEditingOverallId(null);
+      setEditingOverallKey(null);
     };
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
   }, []);
 
-  const handleOverallClick = (e: React.MouseEvent, id: number) => {
+  // rowSpan情報を事前計算（ページ内の rows に基づく）
+  const renderInfos = useMemo((): RowRenderInfo[] => {
+    const groupCounts = new Map<string, number>();
+    const itemCounts = new Map<string, number>();
+    const stageCounts = new Map<string, number>();
+
+    rows.forEach((r) => {
+      const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
+      const ik = `${gk}-${r.checkItemName}`;
+      const sk = `${ik}-${r.inspectionStage}`;
+      groupCounts.set(gk, (groupCounts.get(gk) || 0) + 1);
+      itemCounts.set(ik, (itemCounts.get(ik) || 0) + 1);
+      stageCounts.set(sk, (stageCounts.get(sk) || 0) + 1);
+    });
+
+    const seenGroups = new Set<string>();
+    const seenItems = new Set<string>();
+    const seenStages = new Set<string>();
+
+    return rows.map((r) => {
+      const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
+      const ik = `${gk}-${r.checkItemName}`;
+      const sk = `${ik}-${r.inspectionStage}`;
+
+      const isFirstGroup = !seenGroups.has(gk);
+      const isFirstItem = !seenItems.has(ik);
+      const isFirstStage = !seenStages.has(sk);
+
+      seenGroups.add(gk);
+      seenItems.add(ik);
+      seenStages.add(sk);
+
+      return {
+        row: r,
+        groupKey: gk,
+        groupSpan: isFirstGroup ? (groupCounts.get(gk) ?? 1) : null,
+        itemSpan: isFirstItem ? (itemCounts.get(ik) ?? 1) : null,
+        stageSpan: isFirstStage ? (stageCounts.get(sk) ?? 1) : null,
+      };
+    });
+  }, [rows]);
+
+  const handleOverallClick = (e: React.MouseEvent, groupKey: string) => {
     e.stopPropagation();
-    setEditingOverallId(editingOverallId === id ? null : id);
+    setEditingOverallKey(editingOverallKey === groupKey ? null : groupKey);
     setModPopupId(null);
     setPinnedId(null);
   };
 
-  const handleOverallSelect = (e: React.MouseEvent, id: number, value: "OK" | "NG" | null) => {
+  const handleOverallSelect = (
+    e: React.MouseEvent,
+    processCode: string,
+    masterVersion: string,
+    revisionNumber: number,
+    value: "OK" | "NG" | null,
+  ) => {
     e.stopPropagation();
-    onOverallResultChange?.(id, value);
-    setEditingOverallId(null);
+    onOverallResultChange?.(processCode, masterVersion, revisionNumber, value);
+    setEditingOverallKey(null);
   };
 
   return (
@@ -48,16 +125,19 @@ export default function ResultTable({ rows, anomalies = [], onOverallResultChang
       <thead>
         <tr>
           <th rowSpan={2} style={{ verticalAlign: "middle" }}>
-            工程 / バージョン
+            工程 / バージョン / 改版
+          </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 72 }}>
+            総合結果
+          </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle" }}>
+            検査項目名
           </th>
           <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 56 }}>
             検査段階
           </th>
-          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 64 }}>
-            改版
-          </th>
-          <th rowSpan={2} style={{ verticalAlign: "middle" }}>
-            検査項目名
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 44 }}>
+            N数
           </th>
           <th rowSpan={2} style={{ verticalAlign: "middle", minWidth: 80, textAlign: "center" }}>
             変更種別
@@ -67,9 +147,6 @@ export default function ResultTable({ rows, anomalies = [], onOverallResultChang
           </th>
           <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", width: 64, minWidth: 64 }}>
             判定
-          </th>
-          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 72 }}>
-            総合結果
           </th>
           <th
             colSpan={2}
@@ -89,7 +166,7 @@ export default function ResultTable({ rows, anomalies = [], onOverallResultChang
         <tr>
           <th className="th-inspect">検査日</th>
           <th className="th-inspect">検査者</th>
-          <th className="th-reg">検査項目登録日</th>
+          <th className="th-reg">登録日</th>
           <th className="th-reg">登録者</th>
         </tr>
       </thead>
@@ -101,32 +178,122 @@ export default function ResultTable({ rows, anomalies = [], onOverallResultChang
             </td>
           </tr>
         ) : (
-          rows.map((r) => {
-            const rowId = toRowId(r);
-            const anomaly = anomalyMap.get(rowId);
+          renderInfos.map(({ row: r, groupKey, groupSpan, itemSpan, stageSpan }) => {
+            const rowId = String(r.id);
+            const anomalyKey = toAnomalyKey(r);
+            const anomaly = anomalyMap.get(anomalyKey);
             const hasAnomaly = r.judgement === "NG" && !!anomaly;
             const isActive = hoveredId === rowId || pinnedId === rowId;
             const isModPopupOpen = modPopupId === rowId;
-            const isEditingOverall = editingOverallId === r.id;
+            const isEditingOverall = editingOverallKey === groupKey;
+            const overall = overallMap.get(groupKey);
 
             return (
               <tr
                 key={r.id}
                 className={r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}
               >
-                <td>
-                  {r.processCode}-{r.masterVersion}
-                </td>
-                {/* 検査段階 */}
-                <td className="stage-cell">{r.inspectionStage}</td>
-                {/* 改版 */}
-                <td className="revision-cell">改版{r.revisionNumber}</td>
-                <td>{r.checkItemName}</td>
+                {/* 工程 / バージョン / 改版 — グループ rowSpan */}
+                {groupSpan !== null && (
+                  <td rowSpan={groupSpan} className="group-cell">
+                    <span className="process-badge">{r.processCode}</span>
+                    {" "}
+                    <span className="ver-badge">{r.masterVersion}</span>
+                    <br />
+                    <span style={{ fontSize: 11, color: "#777" }}>改版{r.revisionNumber}</span>
+                  </td>
+                )}
+
+                {/* 総合結果 — グループ rowSpan */}
+                {groupSpan !== null && (
+                  <td
+                    rowSpan={groupSpan}
+                    className="overall-cell"
+                    title={
+                      isEditingOverall
+                        ? undefined
+                        : overall?.overallResult != null
+                          ? "クリックして修正"
+                          : "クリックして登録"
+                    }
+                    onClick={(e) => handleOverallClick(e, groupKey)}
+                  >
+                    {isEditingOverall ? (
+                      <div
+                        className="overall-edit-wrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          className="btn-overall-ok"
+                          onClick={(e) =>
+                            handleOverallSelect(e, r.processCode, r.masterVersion, r.revisionNumber, "OK")
+                          }
+                        >
+                          OK
+                        </button>
+                        <button
+                          className="btn-overall-ng"
+                          onClick={(e) =>
+                            handleOverallSelect(e, r.processCode, r.masterVersion, r.revisionNumber, "NG")
+                          }
+                        >
+                          NG
+                        </button>
+                        {overall?.overallResult != null && (
+                          <button
+                            className="btn-overall-cancel"
+                            onClick={(e) =>
+                              handleOverallSelect(e, r.processCode, r.masterVersion, r.revisionNumber, null)
+                            }
+                          >
+                            解除
+                          </button>
+                        )}
+                      </div>
+                    ) : overall?.overallResult === "OK" ? (
+                      <span className="bdg-ok">OK</span>
+                    ) : overall?.overallResult === "NG" ? (
+                      <span className="bdg-ng">NG</span>
+                    ) : (
+                      <span style={{ color: "#ccc" }}>—</span>
+                    )}
+                  </td>
+                )}
+
+                {/* 検査項目名 — 項目 rowSpan */}
+                {itemSpan !== null && (
+                  <td rowSpan={itemSpan} className="item-cell">
+                    {r.checkItemName}
+                  </td>
+                )}
+
+                {/* 検査段階 — 段階 rowSpan */}
+                {stageSpan !== null && (
+                  <td rowSpan={stageSpan} className="stage-cell">
+                    {r.inspectionStage}
+                  </td>
+                )}
+
+                {/* N数 */}
+                <td className="n-idx-cell">N{r.nIndex}</td>
+
+                {/* 変更種別 */}
                 <td
                   style={{ textAlign: "center" }}
-                  className={r.isUpdated ? `change-type-cell${isModPopupOpen ? " mod-badge-btn-active" : ""}` : undefined}
+                  className={
+                    r.isUpdated
+                      ? `change-type-cell${isModPopupOpen ? " mod-badge-btn-active" : ""}`
+                      : undefined
+                  }
                   title={r.isUpdated ? "クリックして修正前の情報を確認" : undefined}
-                  onClick={r.isUpdated ? (e) => { e.stopPropagation(); setModPopupId(isModPopupOpen ? null : rowId); } : undefined}
+                  onClick={
+                    r.isUpdated
+                      ? (e) => {
+                          e.stopPropagation();
+                          setModPopupId(isModPopupOpen ? null : rowId);
+                        }
+                      : undefined
+                  }
                 >
                   {r.isAdded && <span className="badge-added">追加</span>}
                   {r.isUpdated && (
@@ -197,11 +364,19 @@ export default function ResultTable({ rows, anomalies = [], onOverallResultChang
                   )}
                   {!r.isAdded && !r.isUpdated && <span style={{ color: "#ccc" }}>—</span>}
                 </td>
+
+                {/* 測定値 */}
                 <td>{r.measuredValue}</td>
+
+                {/* 判定（異常インジケーター付き） */}
                 <td style={{ textAlign: "center", width: 64, minWidth: 64 }}>
                   <span
                     className={
-                      r.judgement === "OK" ? "bdg-ok" : r.judgement === "NG" ? "bdg-ng" : "bdg-na"
+                      r.judgement === "OK"
+                        ? "bdg-ok"
+                        : r.judgement === "NG"
+                          ? "bdg-ng"
+                          : "bdg-na"
                     }
                   >
                     {r.judgement}
@@ -234,45 +409,12 @@ export default function ResultTable({ rows, anomalies = [], onOverallResultChang
                     </span>
                   )}
                 </td>
-                {/* 総合結果 */}
-                <td
-                  className="overall-cell"
-                  title={isEditingOverall ? undefined : r.overallResult != null ? "クリックして修正" : "クリックして登録"}
-                  onClick={(e) => handleOverallClick(e, r.id)}
-                >
-                  {isEditingOverall ? (
-                    <div className="overall-edit-wrap" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        className="btn-overall-ok"
-                        onClick={(e) => handleOverallSelect(e, r.id, "OK")}
-                      >
-                        OK
-                      </button>
-                      <button
-                        className="btn-overall-ng"
-                        onClick={(e) => handleOverallSelect(e, r.id, "NG")}
-                      >
-                        NG
-                      </button>
-                      {r.overallResult != null && (
-                        <button
-                          className="btn-overall-cancel"
-                          onClick={(e) => handleOverallSelect(e, r.id, null)}
-                        >
-                          解除
-                        </button>
-                      )}
-                    </div>
-                  ) : r.overallResult === "OK" ? (
-                    <span className="bdg-ok">OK</span>
-                  ) : r.overallResult === "NG" ? (
-                    <span className="bdg-ng">NG</span>
-                  ) : (
-                    <span style={{ color: "#ccc" }}>—</span>
-                  )}
-                </td>
+
+                {/* 検査日・検査者 */}
                 <td style={{ color: "#555" }}>{r.inspectedAt}</td>
                 <td>{r.inspectedBy}</td>
+
+                {/* 登録日・登録者 */}
                 <td style={{ color: "#555" }}>{r.registeredAt}</td>
                 <td>{r.registeredBy}</td>
               </tr>

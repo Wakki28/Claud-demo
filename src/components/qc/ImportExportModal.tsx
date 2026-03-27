@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import type { QcViewMode, QcMasterItem, QcResultItem } from "../../types/qc";
+import type { QcViewMode, QcMasterItem, QcResultItem, QcGroupOverall } from "../../types/qc";
 
 type Tab = "import" | "export";
 
@@ -8,46 +8,72 @@ type Props = {
   initialTab: Tab;
   masterData: QcMasterItem[];
   resultData: QcResultItem[];
+  overallResults: QcGroupOverall[];
   onClose: () => void;
   onImport: (file: File) => void;
 };
 
 // マスタ列定義
 const MASTER_COLS: { key: keyof QcMasterItem; label: string }[] = [
-  { key: "processCode", label: "工程コード" },
-  { key: "masterVersion", label: "バージョン" },
-  { key: "checkItemName", label: "検査項目名" },
-  { key: "checkMethodType", label: "検査方法種類" },
-  { key: "nCount", label: "N数" },
-  { key: "judgementCriteria", label: "判定基準" },
-  { key: "measurementMethod", label: "測定方法" },
-  { key: "specUpperLimit", label: "規格上限値" },
-  { key: "specLowerLimit", label: "規格下限値" },
-  { key: "specCenterValue", label: "規格中央値" },
-  { key: "referenceFile", label: "参照ファイル名" },
-  { key: "updatedAt", label: "更新日時" },
+  { key: "processCode",      label: "工程コード" },
+  { key: "masterVersion",    label: "バージョン" },
+  { key: "checkItemName",    label: "検査項目名" },
+  { key: "checkMethodType",  label: "検査方法種類" },
+  { key: "nCount",           label: "N数" },
+  { key: "judgementCriteria",label: "判定基準" },
+  { key: "measurementMethod",label: "測定方法" },
+  { key: "specUpperLimit",   label: "規格上限値" },
+  { key: "specLowerLimit",   label: "規格下限値" },
+  { key: "specCenterValue",  label: "規格中央値" },
+  { key: "referenceFile",    label: "参照ファイル名" },
+  { key: "updatedAt",        label: "更新日時" },
 ];
 
-// 実績列定義
-const RESULT_COLS: { key: keyof QcResultItem; label: string }[] = [
-  { key: "processCode", label: "工程コード" },
-  { key: "masterVersion", label: "バージョン" },
-  { key: "inspectionStage", label: "検査段階" },
-  { key: "revisionNumber", label: "改版番号" },
-  { key: "checkItemName", label: "検査項目名" },
-  { key: "measuredValue", label: "測定値" },
-  { key: "judgement", label: "判定" },
-  { key: "overallResult", label: "総合結果" },
-  { key: "overallResultAt", label: "総合結果登録日時" },
-  { key: "overallResultBy", label: "総合結果登録者" },
-  { key: "inspectedAt", label: "検査日時" },
-  { key: "inspectedBy", label: "検査者" },
-  { key: "registeredAt", label: "登録日時" },
-  { key: "registeredBy", label: "登録者" },
+// 実績列定義（正しい階層順：工程>バージョン>改版>検査項目>検査段階>N数）
+type ResultExportCol = {
+  key: string;
+  label: string;
+  getValue: (item: QcResultItem, overallMap: Map<string, QcGroupOverall>) => string;
+};
+
+const RESULT_COLS: ResultExportCol[] = [
+  { key: "processCode",    label: "工程コード",        getValue: (r) => r.processCode },
+  { key: "masterVersion",  label: "バージョン",        getValue: (r) => r.masterVersion },
+  { key: "revisionNumber", label: "改版番号",          getValue: (r) => String(r.revisionNumber) },
+  { key: "checkItemName",  label: "検査項目名",        getValue: (r) => r.checkItemName },
+  { key: "inspectionStage",label: "検査段階",          getValue: (r) => r.inspectionStage },
+  { key: "nIndex",         label: "N数番号",           getValue: (r) => String(r.nIndex) },
+  { key: "measuredValue",  label: "測定値",            getValue: (r) => r.measuredValue },
+  { key: "judgement",      label: "判定",              getValue: (r) => r.judgement },
+  {
+    key: "overallResult",
+    label: "総合結果",
+    getValue: (r, m) =>
+      m.get(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`)?.overallResult ?? "",
+  },
+  {
+    key: "overallResultAt",
+    label: "総合結果登録日時",
+    getValue: (r, m) =>
+      m.get(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`)?.overallResultAt ?? "",
+  },
+  {
+    key: "overallResultBy",
+    label: "総合結果登録者",
+    getValue: (r, m) =>
+      m.get(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`)?.overallResultBy ?? "",
+  },
+  { key: "inspectedAt",    label: "検査日時",          getValue: (r) => r.inspectedAt },
+  { key: "inspectedBy",    label: "検査者",            getValue: (r) => r.inspectedBy },
+  { key: "registeredAt",   label: "登録日時",          getValue: (r) => r.registeredAt },
+  { key: "registeredBy",   label: "登録者",            getValue: (r) => r.registeredBy },
 ];
 
 function toCsv(headers: string[], rows: string[][]): string {
-  const escape = (v: string) => (v.includes(",") || v.includes('"') || v.includes("\n") ? `"${v.replace(/"/g, '""')}"` : v);
+  const escape = (v: string) =>
+    v.includes(",") || v.includes('"') || v.includes("\n")
+      ? `"${v.replace(/"/g, '""')}"`
+      : v;
   return [headers, ...rows].map((r) => r.map(escape).join(",")).join("\r\n");
 }
 
@@ -62,7 +88,15 @@ function downloadCsv(filename: string, csv: string) {
   URL.revokeObjectURL(url);
 }
 
-export default function ImportExportModal({ viewMode, initialTab, masterData, resultData, onClose, onImport }: Props) {
+export default function ImportExportModal({
+  viewMode,
+  initialTab,
+  masterData,
+  resultData,
+  overallResults,
+  onClose,
+  onImport,
+}: Props) {
   const [tab, setTab] = useState<Tab>(viewMode === "result" ? "export" : initialTab);
 
   // インポート
@@ -72,8 +106,10 @@ export default function ImportExportModal({ viewMode, initialTab, masterData, re
 
   // エクスポート
   const isMaster = viewMode === "master";
-  const cols = isMaster ? MASTER_COLS : RESULT_COLS;
-  const [selectedCols, setSelectedCols] = useState<Set<string>>(new Set(cols.map((c) => c.key)));
+  const cols: { key: string; label: string }[] = isMaster ? MASTER_COLS : RESULT_COLS;
+  const [selectedCols, setSelectedCols] = useState<Set<string>>(
+    new Set(cols.map((c) => c.key)),
+  );
   const [exported, setExported] = useState(false);
 
   const handleFileSelect = (file: File) => {
@@ -111,21 +147,26 @@ export default function ImportExportModal({ viewMode, initialTab, masterData, re
     const activeCols = cols.filter((c) => selectedCols.has(c.key));
     const headers = activeCols.map((c) => c.label);
     let rows: string[][];
+
     if (isMaster) {
+      const mCols = activeCols as typeof MASTER_COLS;
       rows = masterData.map((item) =>
-        activeCols.map((c) => {
-          const v = item[c.key as keyof QcMasterItem];
+        mCols.map((c) => {
+          const v = item[c.key];
           return v == null ? "" : String(v);
         }),
       );
     } else {
+      const rCols = activeCols as ResultExportCol[];
+      const overallMap = new Map<string, QcGroupOverall>();
+      overallResults.forEach((o) => {
+        overallMap.set(`${o.processCode}-${o.masterVersion}-${o.revisionNumber}`, o);
+      });
       rows = resultData.map((item) =>
-        activeCols.map((c) => {
-          const v = item[c.key as keyof QcResultItem];
-          return v == null ? "" : String(v);
-        }),
+        rCols.map((c) => c.getValue(item, overallMap)),
       );
     }
+
     const now = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const name = isMaster ? `検査項目マスタ_${now}.csv` : `実績データ_${now}.csv`;
     downloadCsv(name, toCsv(headers, rows));
@@ -185,7 +226,11 @@ export default function ImportExportModal({ viewMode, initialTab, masterData, re
                   <span className="ie-drop-sub">{(selectedFile.size / 1024).toFixed(1)} KB</span>
                   <button
                     className="ie-drop-clr"
-                    onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
                   >
                     ✕ クリア
                   </button>
@@ -217,7 +262,11 @@ export default function ImportExportModal({ viewMode, initialTab, masterData, re
             <p className="ie-desc">エクスポートする列を選択してください。</p>
             <div className="ie-col-head">
               <label className="ie-chk-lbl">
-                <input type="checkbox" checked={selectedCols.size === cols.length} onChange={toggleAll} />
+                <input
+                  type="checkbox"
+                  checked={selectedCols.size === cols.length}
+                  onChange={toggleAll}
+                />
                 すべて選択
               </label>
               <span className="ie-col-cnt">{selectedCols.size} / {cols.length} 列選択中</span>
