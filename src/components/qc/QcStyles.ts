@@ -66,9 +66,7 @@ tr:last-child td{border-bottom:none;}
 .badge-added{font-size:11px;font-weight:700;color:#1d4ed8;}
 .badge-updated{font-size:11px;font-weight:700;color:#c2410c;}
 tr.row-added   td{background:#eff6ff !important;}
-tr.row-added:hover td{background:#dbeafe !important;}
 tr.row-updated td{background:#fff7ed !important;}
-tr.row-updated:hover td{background:#ffedd5 !important;}
 tr.row-normal:hover td{background:#f0f5fc;}
 .th-inspect{background:#1975D0;}
 .th-reg{background:#1975D0;}
@@ -185,7 +183,7 @@ tr.row-edited:hover td{background:#e4eefb;}
 .ie-btn-exec:hover:not(:disabled){background:#245fa0;}
 .ie-btn-exec:disabled{background:#a0b8d4;cursor:default;}
 .ie-btn-exec.ie-btn-done{background:#29a745;}
-.group-cell{vertical-align:top;padding-top:8px;min-width:120px;}
+.group-cell{vertical-align:top;padding-top:8px;min-width:130px;}
 tr.group-separator td{border-top:2px solid #e0e0e0 !important;}
 .item-cell{vertical-align:top;padding-top:6px;}
 .stage-cell{text-align:center;font-size:12px;font-weight:600;color:#333;min-width:48px;vertical-align:middle;}

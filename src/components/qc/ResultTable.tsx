@@ -24,7 +24,6 @@ export default function ResultTable({
   anomalies = [],
   overallResults,
 }: ResultTableProps) {
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [pinnedId, setPinnedId] = useState<string | null>(null);
   const [modPopupId, setModPopupId] = useState<string | null>(null);
 
@@ -161,7 +160,7 @@ export default function ResultTable({
             const anomalyKey = toAnomalyKey(r);
             const anomaly = anomalyMap.get(anomalyKey);
             const hasAnomaly = r.judgement === "NG" && !!anomaly;
-            const isActive = hoveredId === rowId || pinnedId === rowId;
+            const isActive = pinnedId === rowId;
             const isModPopupOpen = modPopupId === rowId;
             const overall = overallMap.get(groupKey);
             const showGroupBorder = groupSpan !== null && rowIdx > 0;
@@ -174,11 +173,11 @@ export default function ResultTable({
                 {/* 工程 / バージョン / 改版 — グループ rowSpan */}
                 {groupSpan !== null && (
                   <td rowSpan={groupSpan} className="group-cell">
-                    <strong>{r.processCode}</strong>
-                    {" "}
-                    {r.masterVersion}
-                    <br />
-                    <span style={{ fontSize: 11, color: "#777" }}>改版{r.revisionNumber}</span>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: "bold", color: "#111" }}>{r.processCode}</span>
+                      <span style={{ fontSize: 14, fontWeight: "normal", color: "#333" }}>{r.masterVersion}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>改版{r.revisionNumber}</div>
                   </td>
                 )}
 
@@ -197,9 +196,9 @@ export default function ResultTable({
                   </td>
                 )}
 
-                {/* 機番 — グループ先頭行のみ値、以降は — */}
-                <td style={{ textAlign: "center", fontSize: 12, color: groupSpan !== null ? "#333" : "#bbb" }}>
-                  {groupSpan !== null ? r.machineNumber : "—"}
+                {/* 機番 — 全行に表示 */}
+                <td style={{ textAlign: "center", fontSize: 12, color: "#333" }}>
+                  {r.machineNumber}
                 </td>
 
                 {/* 検査項目名 — 項目 rowSpan */}
@@ -337,8 +336,6 @@ export default function ResultTable({
                   {hasAnomaly && (
                     <span
                       className={`anomaly-trigger${isActive ? " anomaly-trigger-active" : ""}`}
-                      onMouseEnter={() => setHoveredId(rowId)}
-                      onMouseLeave={() => setHoveredId(null)}
                       onClick={(e) => {
                         e.stopPropagation();
                         setPinnedId(pinnedId === rowId ? null : rowId);
