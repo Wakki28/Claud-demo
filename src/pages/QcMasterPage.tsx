@@ -277,6 +277,15 @@ export default function QcMasterPage() {
       const idx = prev.findIndex(
         (o) => `${o.processCode}-${o.masterVersion}-${o.revisionNumber}` === key,
       );
+      if (idx >= 0) {
+        const updated: QcGroupOverall = {
+          ...prev[idx],
+          overallResult: value,
+          overallResultAt: value != null ? mkDate(0) : undefined,
+          overallResultBy: value != null ? "高宮 織太" : undefined,
+        };
+        return prev.map((o, i) => (i === idx ? updated : o));
+      }
       const updated: QcGroupOverall = {
         processCode,
         masterVersion,
@@ -284,10 +293,8 @@ export default function QcMasterPage() {
         overallResult: value,
         overallResultAt: value != null ? mkDate(0) : undefined,
         overallResultBy: value != null ? "高宮 織太" : undefined,
+        isAdopted: true,
       };
-      if (idx >= 0) {
-        return prev.map((o, i) => (i === idx ? updated : o));
-      }
       return [...prev, updated];
     });
   };
