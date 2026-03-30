@@ -112,28 +112,8 @@ export default function SearchArea({
             <option value="">すべて</option>
             <option value="added">追加</option>
             <option value="updated">修正</option>
+            <option value="none">なし</option>
           </select>
-
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              marginLeft: 10,
-              fontSize: 12,
-              color: "#555",
-              cursor: "pointer",
-              userSelect: "none",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={rSrch.changedOnly}
-              onChange={(e) => onRSrchChange({ ...rSrch, changedOnly: e.target.checked })}
-              style={{ cursor: "pointer", accentColor: "#2d6db5" }}
-            />
-            変更ありのみ表示
-          </label>
         </div>
       )}
 

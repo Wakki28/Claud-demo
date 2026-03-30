@@ -43,7 +43,6 @@ const EMPTY_R_SRCH: ResultSearchState = {
   inspectionStage: "",
   checkMethodType: "",
   adoptionStatus: "adopted",
-  changedOnly: false,
   changeType: "",
 };
 const EMPTY_M_SRCH: MasterSearchState = {
@@ -146,12 +145,10 @@ export default function QcMasterPage() {
     });
 
     // 変更種別グループのキーセット
-    const changedGroupKeys = new Set<string>();
     const addedGroupKeys = new Set<string>();
     const updatedGroupKeys = new Set<string>();
     results.forEach((r) => {
       const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
-      if (r.isAdded || r.isUpdated) changedGroupKeys.add(gk);
       if (r.isAdded) addedGroupKeys.add(gk);
       if (r.isUpdated) updatedGroupKeys.add(gk);
     });
@@ -183,12 +180,10 @@ export default function QcMasterPage() {
       // 検査方法フィルター（完全一致）
       if (rApp.checkMethodType && r.checkMethodType !== rApp.checkMethodType) return false;
 
-      // 変更ありのみ（追加または修正を含むグループのみ表示）
-      if (rApp.changedOnly && !changedGroupKeys.has(gk)) return false;
-
-      // 変更種別フィルター（追加/修正を含むグループのみ表示）
+      // 変更種別フィルター（グループ単位）
       if (rApp.changeType === "added" && !addedGroupKeys.has(gk)) return false;
       if (rApp.changeType === "updated" && !updatedGroupKeys.has(gk)) return false;
+      if (rApp.changeType === "none" && (addedGroupKeys.has(gk) || updatedGroupKeys.has(gk))) return false;
 
       return true;
     });

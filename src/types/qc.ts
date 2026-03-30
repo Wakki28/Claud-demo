@@ -61,8 +61,7 @@ export type ResultSearchState = {
   inspectionStage: string;    // すべて/"初"/"中"/"終"
   checkMethodType: string;    // すべて/"数値入力"/"合否判定"
   adoptionStatus: string;     // ""=すべて / "adopted" / "notAdopted"
-  changedOnly: boolean;       // 変更ありのみ表示
-  changeType: string;         // ""=すべて / "added"=追加 / "updated"=修正
+  changeType: string;         // ""=すべて / "added"=追加 / "updated"=修正 / "none"=なし
 };
 
 export type MasterSearchState = {
