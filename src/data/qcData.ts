@@ -44,8 +44,8 @@ export const EMPTY_MASTER: Omit<QcMasterItem, "id"> = {
 };
 
 // ── ユーティリティ ───────────────────────────────────────
-export const mkDate = (daysAgo: number, hour = 9): string => {
-  const d = new Date(2026, 1, 20 - daysAgo, hour, 30);
+export const mkDate = (daysAgo: number, hour = 9, minute = 30): string => {
+  const d = new Date(2026, 1, 20 - daysAgo, hour, minute);
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
@@ -145,6 +145,10 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
     item: string, stage: string, n: number,
     val: string, judge: "OK" | "NG" | "-",
     daysAgo: number,
+    insHour: number,
+    inspectedBy: string,
+    registeredBy: string,
+    regMinute: number,
     isAdded: boolean, isUpdated: boolean,
     orig?: OriginalResultData,
   ): void => {
@@ -159,10 +163,10 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
       nIndex: n,
       measuredValue: val,
       judgement: judge,
-      inspectedAt: mkDate(daysAgo + 1, 8 + (n % 3)),
-      inspectedBy: INS[(id + n) % 4],
-      registeredAt: mkDate(daysAgo, 9 + (n % 2)),
-      registeredBy: REG[id % 3],
+      inspectedAt: mkDate(daysAgo + 1, insHour, (n - 1) * 3),
+      inspectedBy,
+      registeredAt: mkDate(daysAgo, 10, regMinute),
+      registeredBy,
       isAdded,
       isUpdated,
     };
@@ -214,9 +218,22 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
       const daysAgo = baseDaysAgo - (itemIdx % 3);
       const effectiveN = maxN != null ? Math.min(nCount, maxN) : nCount;
 
-      stages.forEach((stage) => {
+      stages.forEach((stage, stageIdx) => {
+        // 検査項目×検査段階の単位で検査者・登録者を1人に固定する
+        const inspector = INS[(itemIdx * 7 + stageIdx * 3) % INS.length];
+        const registrant = REG[(itemIdx * 5 + stageIdx * 2) % REG.length];
+        // 登録日時のステップ（1〜5分）も検査項目×段階で固定
+        const regMinuteStep = (itemIdx * 3 + stageIdx * 2) % 5 + 1;
+        // 検査時刻の基準時（段階ごとに8・9・10時台）
+        const insHour = 8 + stageIdx % 3;
+        // 修正履歴用の元担当者も固定
+        const origInspector = INS[(itemIdx * 11 + stageIdx * 5 + 1) % INS.length];
+        const origRegistrant = REG[(itemIdx * 7 + stageIdx * 3 + 1) % REG.length];
+
         for (let n = 1; n <= effectiveN; n++) {
           const { val, judge } = genValue(isPassFail, ul, ll, center, range);
+          // N1が基準時刻、N2以降は数分ずつ加算
+          const regMinute = (n - 1) * regMinuteStep;
 
           let orig: OriginalResultData | undefined;
           if (isUpdated) {
@@ -233,13 +250,13 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
             }
             orig = mkOrig(
               origVal, origJudge,
-              daysAgo + 5, INS[(nextId + 1) % 4],
-              daysAgo + 4, REG[nextId % 3],
-              daysAgo + 3, REG[(nextId + 1) % 3],
+              daysAgo + 5, origInspector,
+              daysAgo + 4, origRegistrant,
+              daysAgo + 3, origRegistrant,
             );
           }
 
-          addRow(pc, ver, rev, itemName, stage, n, val, judge, daysAgo, isAdded, isUpdated, orig);
+          addRow(pc, ver, rev, itemName, stage, n, val, judge, daysAgo, insHour, inspector, registrant, regMinute, isAdded, isUpdated, orig);
         }
       });
     });
