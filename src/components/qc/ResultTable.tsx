@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
-import type { QcResultItem, QcGroupOverall, AnomalyInfo } from "../../types/qc";
+import type { QcResultItem, QcGroupOverall, AnomalyInfo, QcMasterItem } from "../../types/qc";
 
 type ResultTableProps = {
   rows: QcResultItem[];
   anomalies?: AnomalyInfo[];
   overallResults: QcGroupOverall[];
+  masters?: QcMasterItem[];
 };
 
 interface RowRenderInfo {
@@ -23,6 +24,7 @@ export default function ResultTable({
   rows,
   anomalies = [],
   overallResults,
+  masters = [],
 }: ResultTableProps) {
   const [pinnedId, setPinnedId] = useState<string | null>(null);
   const [modPopupId, setModPopupId] = useState<string | null>(null);
@@ -39,6 +41,14 @@ export default function ResultTable({
     });
     return m;
   }, [overallResults]);
+
+  const masterMap = useMemo(() => {
+    const m = new Map<string, QcMasterItem>();
+    masters.forEach((master) => {
+      m.set(`${master.processCode}-${master.masterVersion}-${master.checkItemName}`, master);
+    });
+    return m;
+  }, [masters]);
 
   useEffect(() => {
     const handleOutsideClick = () => {
@@ -113,6 +123,15 @@ export default function ResultTable({
           <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 56 }}>
             検査方法
           </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 80 }}>
+            測定方法
+          </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 64 }}>
+            規格上限
+          </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 64 }}>
+            規格下限
+          </th>
           <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 44 }}>
             N数
           </th>
@@ -150,7 +169,7 @@ export default function ResultTable({
       <tbody>
         {rows.length === 0 ? (
           <tr>
-            <td colSpan={14} className="no-data">
+            <td colSpan={17} className="no-data">
               データがありません
             </td>
           </tr>
@@ -164,6 +183,7 @@ export default function ResultTable({
             const isModPopupOpen = modPopupId === rowId;
             const overall = overallMap.get(groupKey);
             const showGroupBorder = groupSpan !== null && rowIdx > 0;
+            const masterItem = masterMap.get(`${r.processCode}-${r.masterVersion}-${r.checkItemName}`);
 
             return (
               <tr
@@ -223,6 +243,27 @@ export default function ResultTable({
                     ) : (
                       <span style={{ color: "#888", fontSize: 11, fontWeight: 600 }}>合否</span>
                     )}
+                  </td>
+                )}
+
+                {/* 測定方法 — 項目 rowSpan */}
+                {itemSpan !== null && (
+                  <td rowSpan={itemSpan} style={{ textAlign: "center", fontSize: 12, color: "#555", minWidth: 80, verticalAlign: "middle" }}>
+                    {masterItem?.measurementMethod || "—"}
+                  </td>
+                )}
+
+                {/* 規格上限 — 項目 rowSpan */}
+                {itemSpan !== null && (
+                  <td rowSpan={itemSpan} style={{ textAlign: "center", fontSize: 12, color: "#555", minWidth: 64, verticalAlign: "middle" }}>
+                    {masterItem?.specUpperLimit != null ? masterItem.specUpperLimit : "—"}
+                  </td>
+                )}
+
+                {/* 規格下限 — 項目 rowSpan */}
+                {itemSpan !== null && (
+                  <td rowSpan={itemSpan} style={{ textAlign: "center", fontSize: 12, color: "#555", minWidth: 64, verticalAlign: "middle" }}>
+                    {masterItem?.specLowerLimit != null ? masterItem.specLowerLimit : "—"}
                   </td>
                 )}
 

@@ -467,6 +467,7 @@ export default function QcMasterPage() {
                       rows={paged as Parameters<typeof ResultTable>[0]["rows"]}
                       anomalies={DUMMY_ANOMALIES}
                       overallResults={computedOverallResults}
+                      masters={masters}
                     />
                   )}
                   {viewMode === "master" && (
