@@ -67,7 +67,6 @@ tr:last-child td{border-bottom:none;}
 .badge-updated{font-size:11px;font-weight:700;color:#c2410c;}
 tr.row-added   td{background:#eff6ff !important;}
 tr.row-updated td{background:#fff7ed !important;}
-tr.row-normal:hover td{background:#f5f5f5;}
 .th-inspect{background:#1975D0;}
 .th-reg{background:#1975D0;}
 .btn-edt{background:#fff;color:#2d6db5;border:1px solid #2d6db5;border-radius:2px;padding:2px 8px;font-size:11px;cursor:pointer;margin-right:3px;}
@@ -151,7 +150,6 @@ tr.row-edited:hover td{background:#e4eefb;}
 .mod-history-tbl{width:100%;border-collapse:collapse;}
 .mod-history-tbl th{font-size:11px;color:#888;font-weight:500;text-align:left;padding:3px 6px 3px 0;white-space:nowrap;width:60px;background:transparent;border:none;}
 .change-type-cell{position:relative;cursor:pointer;}
-.change-type-cell:hover{background:#fed7aa !important;}
 .mod-history-tbl td{font-size:12px;color:#333;padding:3px 0;}
 .ie-modal{background:#fff;border:2px solid #2d6db5;border-radius:4px;width:520px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;}
 .ie-hdr{background:#2d6db5;color:#fff;padding:11px 16px;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
@@ -183,13 +181,13 @@ tr.row-edited:hover td{background:#e4eefb;}
 .ie-btn-exec:hover:not(:disabled){background:#245fa0;}
 .ie-btn-exec:disabled{background:#a0b8d4;cursor:default;}
 .ie-btn-exec.ie-btn-done{background:#29a745;}
-.group-cell{vertical-align:top;padding-top:8px;min-width:130px;}
+.group-cell{vertical-align:top;padding-top:8px;min-width:130px;background:#fff !important;}
 tr.group-separator td{border-top:2px solid #9ca3af !important;}
 .item-cell{vertical-align:top;padding-top:6px;}
 .stage-cell{text-align:center;font-size:12px;font-weight:600;color:#333;min-width:48px;vertical-align:middle;}
 .n-idx-cell{text-align:center;font-size:11px;color:#888;min-width:36px;}
-.overall-cell{text-align:center;min-width:72px;cursor:pointer;position:relative;vertical-align:middle;}
-.overall-cell:hover{background:inherit !important;}
+.overall-cell{text-align:center;min-width:72px;cursor:default;position:relative;vertical-align:middle;background:#fff !important;}
+.overall-cell:hover{background:#fff !important;}
 .overall-cell-readonly{cursor:default !important;}
 .overall-cell-readonly:hover{background:inherit !important;}
 .overall-edit-wrap{display:inline-flex;gap:4px;justify-content:center;align-items:center;}
