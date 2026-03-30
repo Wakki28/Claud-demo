@@ -5,12 +5,6 @@ type ResultTableProps = {
   rows: QcResultItem[];
   anomalies?: AnomalyInfo[];
   overallResults: QcGroupOverall[];
-  onOverallResultChange?: (
-    processCode: string,
-    masterVersion: string,
-    revisionNumber: number,
-    value: "OK" | "NG" | null,
-  ) => void;
 };
 
 interface RowRenderInfo {
@@ -29,12 +23,10 @@ export default function ResultTable({
   rows,
   anomalies = [],
   overallResults,
-  onOverallResultChange,
 }: ResultTableProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [pinnedId, setPinnedId] = useState<string | null>(null);
   const [modPopupId, setModPopupId] = useState<string | null>(null);
-  const [editingOverallKey, setEditingOverallKey] = useState<string | null>(null);
 
   const anomalyMap = useMemo(
     () => new Map(anomalies.map((a) => [a.rowId, a])),
@@ -53,7 +45,6 @@ export default function ResultTable({
     const handleOutsideClick = () => {
       setPinnedId(null);
       setModPopupId(null);
-      setEditingOverallKey(null);
     };
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
@@ -100,25 +91,6 @@ export default function ResultTable({
       };
     });
   }, [rows]);
-
-  const handleOverallClick = (e: React.MouseEvent, groupKey: string) => {
-    e.stopPropagation();
-    setEditingOverallKey(editingOverallKey === groupKey ? null : groupKey);
-    setModPopupId(null);
-    setPinnedId(null);
-  };
-
-  const handleOverallSelect = (
-    e: React.MouseEvent,
-    processCode: string,
-    masterVersion: string,
-    revisionNumber: number,
-    value: "OK" | "NG" | null,
-  ) => {
-    e.stopPropagation();
-    onOverallResultChange?.(processCode, masterVersion, revisionNumber, value);
-    setEditingOverallKey(null);
-  };
 
   return (
     <table>
@@ -185,7 +157,6 @@ export default function ResultTable({
             const hasAnomaly = r.judgement === "NG" && !!anomaly;
             const isActive = hoveredId === rowId || pinnedId === rowId;
             const isModPopupOpen = modPopupId === rowId;
-            const isEditingOverall = editingOverallKey === groupKey;
             const overall = overallMap.get(groupKey);
             const showGroupBorder = groupSpan !== null && rowIdx > 0;
 
@@ -205,62 +176,17 @@ export default function ResultTable({
                   </td>
                 )}
 
-                {/* 総合結果 — グループ rowSpan */}
+                {/* 総合結果 — グループ rowSpan（自動判定・編集不可） */}
                 {groupSpan !== null && (
-                  <td
-                    rowSpan={groupSpan}
-                    className={`overall-cell${overall?.isAdopted === false ? " overall-cell-readonly" : ""}`}
-                    title={
-                      isEditingOverall
-                        ? undefined
-                        : overall?.isAdopted === false
-                          ? undefined
-                          : overall?.overallResult != null
-                            ? "クリックして修正"
-                            : "クリックして登録"
-                    }
-                    onClick={overall?.isAdopted !== false ? (e) => handleOverallClick(e, groupKey) : undefined}
-                  >
+                  <td rowSpan={groupSpan} className="overall-cell">
                     {overall?.isAdopted === false ? (
-                      <span style={{ color: "#ccc" }}>—</span>
-                    ) : isEditingOverall ? (
-                      <div
-                        className="overall-edit-wrap"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          className="btn-overall-ok"
-                          onClick={(e) =>
-                            handleOverallSelect(e, r.processCode, r.masterVersion, r.revisionNumber, "OK")
-                          }
-                        >
-                          OK
-                        </button>
-                        <button
-                          className="btn-overall-ng"
-                          onClick={(e) =>
-                            handleOverallSelect(e, r.processCode, r.masterVersion, r.revisionNumber, "NG")
-                          }
-                        >
-                          NG
-                        </button>
-                        {overall?.overallResult != null && (
-                          <button
-                            className="btn-overall-cancel"
-                            onClick={(e) =>
-                              handleOverallSelect(e, r.processCode, r.masterVersion, r.revisionNumber, null)
-                            }
-                          >
-                            解除
-                          </button>
-                        )}
-                      </div>
+                      <span style={{ color: "#999", fontSize: 11 }}>対象外</span>
                     ) : overall?.overallResult === "OK" ? (
                       <span className="bdg-ok">OK</span>
                     ) : overall?.overallResult === "NG" ? (
                       <span className="bdg-ng">NG</span>
                     ) : (
-                      <span className="bdg-unregistered">未登録</span>
+                      <span style={{ color: "#888", fontSize: 11 }}>検査中</span>
                     )}
                   </td>
                 )}

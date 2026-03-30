@@ -17,6 +17,8 @@ import {
   DUMMY_MASTERS,
   DUMMY_ANOMALIES,
   DUMMY_OVERALL_RESULTS,
+  ITEMS_PER_PROCESS,
+  getExpectedStages,
   mkDate,
 } from "../data/qcData";
 import { QC_CSS } from "../components/qc/QcStyles";
@@ -78,11 +80,48 @@ export default function QcMasterPage() {
   // 実績データ
   const [results] = useState<QcResultItem[]>(DUMMY_RESULTS);
 
-  // 総合結果（工程 × バージョン × 改版 単位）
-  const [overallResults, setOverallResults] = useState<QcGroupOverall[]>(DUMMY_OVERALL_RESULTS);
-
-  // マスタデータ
+  // マスタデータ（computedOverallResults より先に宣言）
   const [masters, setMasters] = useState<QcMasterItem[]>(DUMMY_MASTERS);
+
+  // 総合結果：全検査項目・全検査段階・全N数の判定から自動計算
+  const computedOverallResults = useMemo((): QcGroupOverall[] => {
+    return DUMMY_OVERALL_RESULTS.map((group) => {
+      if (!group.isAdopted) return { ...group, overallResult: null };
+
+      const { processCode: pc, masterVersion: ver, revisionNumber: rev } = group;
+      const groupResults = results.filter(
+        (r) => r.processCode === pc && r.masterVersion === ver && r.revisionNumber === rev,
+      );
+
+      if (groupResults.length === 0) return { ...group, overallResult: null };
+      if (groupResults.some((r) => r.judgement === "NG")) return { ...group, overallResult: "NG" };
+
+      // 全検査項目・全段階・全N数が揃っているか確認
+      const items = ITEMS_PER_PROCESS[pc] ?? [];
+      const groupMasters = masters.filter((m) => m.processCode === pc && m.masterVersion === ver);
+      for (const master of groupMasters) {
+        const itemIdx = items.indexOf(master.checkItemName);
+        if (itemIdx < 0) continue;
+        const stages = getExpectedStages(pc, itemIdx);
+        for (const stage of stages) {
+          for (let n = 1; n <= master.nCount; n++) {
+            if (
+              !groupResults.some(
+                (r) =>
+                  r.checkItemName === master.checkItemName &&
+                  r.inspectionStage === stage &&
+                  r.nIndex === n,
+              )
+            ) {
+              return { ...group, overallResult: null }; // 検査中（未完了）
+            }
+          }
+        }
+      }
+      return { ...group, overallResult: "OK" };
+    });
+  }, [results, masters]);
+
   const [newIds, setNewIds] = useState<Set<number>>(new Set());
   const [editedIds, setEditedIds] = useState<Set<number>>(new Set());
 
@@ -97,9 +136,9 @@ export default function QcMasterPage() {
 
   // フィルタ済みデータ
   const filtR = useMemo(() => {
-    // 総合結果・採用状態のグループマップ
-    const groupMap = new Map<string, typeof overallResults[0]>();
-    overallResults.forEach((o) => {
+    // 総合結果・採用状態のグループマップ（計算済み）
+    const groupMap = new Map<string, QcGroupOverall>();
+    computedOverallResults.forEach((o) => {
       groupMap.set(`${o.processCode}-${o.masterVersion}-${o.revisionNumber}`, o);
     });
 
@@ -123,11 +162,11 @@ export default function QcMasterPage() {
       if (rApp.adoptionStatus === "adopted" && group?.isAdopted === false) return false;
       if (rApp.adoptionStatus === "notAdopted" && group?.isAdopted !== false) return false;
 
-      // 総合結果フィルター（工程×バージョン×改版 単位）
+      // 総合結果フィルター（自動計算値で判定・工程×バージョン×改版 単位）
       if (rApp.overallResult === "OK" && group?.overallResult !== "OK") return false;
       if (rApp.overallResult === "NG" && group?.overallResult !== "NG") return false;
-      if (rApp.overallResult === "未登録") {
-        // 採用バージョンかつ未登録のグループのみ
+      if (rApp.overallResult === "検査中") {
+        // 採用バージョンかつ検査未完了のグループのみ
         if (group?.overallResult != null || group?.isAdopted === false) return false;
       }
 
@@ -141,7 +180,7 @@ export default function QcMasterPage() {
 
       return true;
     });
-  }, [results, overallResults, rApp]);
+  }, [results, computedOverallResults, rApp]);
 
   // 正しい階層順にソート：工程 → バージョン → 改版 → 検査項目 → 検査段階（初→中→終）→ N数
   const sortedR = useMemo(
@@ -265,39 +304,6 @@ export default function QcMasterPage() {
     setDlgMsg("インポートが完了しました。");
   };
 
-  // 総合結果の更新（工程 × バージョン × 改版 単位）
-  const handleOverallResultChange = (
-    processCode: string,
-    masterVersion: string,
-    revisionNumber: number,
-    value: "OK" | "NG" | null,
-  ) => {
-    const key = `${processCode}-${masterVersion}-${revisionNumber}`;
-    setOverallResults((prev) => {
-      const idx = prev.findIndex(
-        (o) => `${o.processCode}-${o.masterVersion}-${o.revisionNumber}` === key,
-      );
-      if (idx >= 0) {
-        const updated: QcGroupOverall = {
-          ...prev[idx],
-          overallResult: value,
-          overallResultAt: value != null ? mkDate(0) : undefined,
-          overallResultBy: value != null ? "高宮 織太" : undefined,
-        };
-        return prev.map((o, i) => (i === idx ? updated : o));
-      }
-      const updated: QcGroupOverall = {
-        processCode,
-        masterVersion,
-        revisionNumber,
-        overallResult: value,
-        overallResultAt: value != null ? mkDate(0) : undefined,
-        overallResultBy: value != null ? "高宮 織太" : undefined,
-        isAdopted: true,
-      };
-      return [...prev, updated];
-    });
-  };
 
   // 実績サマリー件数
   const totalAdded = results.filter((r) => r.isAdded).length;
@@ -454,8 +460,7 @@ export default function QcMasterPage() {
                     <ResultTable
                       rows={paged as Parameters<typeof ResultTable>[0]["rows"]}
                       anomalies={DUMMY_ANOMALIES}
-                      overallResults={overallResults}
-                      onOverallResultChange={handleOverallResultChange}
+                      overallResults={computedOverallResults}
                     />
                   )}
                   {viewMode === "master" && (
@@ -502,7 +507,7 @@ export default function QcMasterPage() {
             initialTab={ieModal.tab}
             masterData={masters}
             resultData={results}
-            overallResults={overallResults}
+            overallResults={computedOverallResults}
             onClose={() => setIeModal(null)}
             onImport={handleImport}
           />

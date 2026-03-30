@@ -56,7 +56,7 @@ export default function SearchArea({
             <option value="">すべて</option>
             <option value="OK">OK</option>
             <option value="NG">NG</option>
-            <option value="未登録">未登録</option>
+            <option value="検査中">検査中</option>
           </select>
 
           <span className="srch-lbl" style={{ marginLeft: 6 }}>検査段階</span>

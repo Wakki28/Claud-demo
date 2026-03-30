@@ -48,20 +48,14 @@ const RESULT_COLS: ResultExportCol[] = [
   {
     key: "overallResult",
     label: "総合結果",
-    getValue: (r, m) =>
-      m.get(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`)?.overallResult ?? "",
-  },
-  {
-    key: "overallResultAt",
-    label: "総合結果登録日時",
-    getValue: (r, m) =>
-      m.get(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`)?.overallResultAt ?? "",
-  },
-  {
-    key: "overallResultBy",
-    label: "総合結果登録者",
-    getValue: (r, m) =>
-      m.get(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`)?.overallResultBy ?? "",
+    getValue: (r, m) => {
+      const group = m.get(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`);
+      if (!group) return "";
+      if (!group.isAdopted) return "対象外";
+      if (group.overallResult === "OK") return "OK";
+      if (group.overallResult === "NG") return "NG";
+      return "検査中";
+    },
   },
   { key: "inspectedAt",    label: "検査日時",          getValue: (r) => r.inspectedAt },
   { key: "inspectedBy",    label: "検査者",            getValue: (r) => r.inspectedBy },

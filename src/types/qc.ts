@@ -24,13 +24,12 @@ export type QcResultItem = {
 };
 
 // 総合結果（工程 × バージョン × 改版 の単位）
+// overallResult はフロントエンドで自動計算する（手動登録不可）
 export type QcGroupOverall = {
   processCode: string;
   masterVersion: string;
   revisionNumber: number;
-  overallResult: "OK" | "NG" | null;
-  overallResultAt?: string;
-  overallResultBy?: string;
+  overallResult?: "OK" | "NG" | null; // 計算値（nullは検査中）
   isAdopted: boolean;
 };
 
@@ -55,7 +54,7 @@ export type ResultSearchState = {
   processCode: string;
   masterVersion: string;
   checkItemName: string;
-  overallResult: string;      // すべて/"OK"/"NG"/"未登録"
+  overallResult: string;      // すべて/"OK"/"NG"/"検査中"
   inspectionStage: string;   // すべて/"初"/"中"/"終"
   adoptionStatus: string;    // ""=すべて / "adopted" / "notAdopted"
   changedOnly: boolean;      // 変更ありのみ表示
