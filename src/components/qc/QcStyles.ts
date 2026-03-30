@@ -184,8 +184,6 @@ tr.row-edited:hover td{background:#e4eefb;}
 .ie-btn-exec.ie-btn-done{background:#29a745;}
 .group-cell{vertical-align:top;padding:6px 8px;min-width:160px;white-space:nowrap;}
 tr.group-separator td{border-top:2px solid #9ca3af !important;}
-tr.item-separator td{border-top:1px solid #d1d5db !important;}
-tr.stage-separator td{border-top:2px solid #b0b7c3 !important;}
 .item-cell{vertical-align:top;padding-top:6px;}
 .stage-cell{text-align:center;font-size:12px;font-weight:normal;color:#333;min-width:48px;vertical-align:middle;}
 .n-idx-cell{text-align:center;font-size:11px;color:#888;min-width:36px;}

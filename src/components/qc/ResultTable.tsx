@@ -208,14 +208,12 @@ export default function ResultTable({
             const isModPopupOpen = modPopupId === rowId;
             const stageOverall = itemStageOverallMap.get(stageKey);
             const showGroupBorder = groupSpan !== null && rowIdx > 0;
-            const showItemBorder = itemGroupSpan !== null && !showGroupBorder && rowIdx > 0;
-            const showStageBorder = stageSpan !== null && !showGroupBorder && !showItemBorder && rowIdx > 0;
             const masterItem = masterMap.get(`${r.processCode}-${r.masterVersion}-${r.checkItemName}`);
 
             return (
               <tr
                 key={r.id}
-                className={`${r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}${showGroupBorder ? " group-separator" : showItemBorder ? " item-separator" : showStageBorder ? " stage-separator" : ""}`}
+                className={`${r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}${showGroupBorder ? " group-separator" : ""}`}
               >
                 {/* 工程 / バージョン / 改版 — 検査項目 rowSpan */}
                 {itemGroupSpan !== null && (
