@@ -182,10 +182,11 @@ tr.row-edited:hover td{background:#e4eefb;}
 .ie-btn-exec:hover:not(:disabled){background:#245fa0;}
 .ie-btn-exec:disabled{background:#a0b8d4;cursor:default;}
 .ie-btn-exec.ie-btn-done{background:#29a745;}
-.group-cell{vertical-align:top;padding-top:8px;min-width:130px;}
+.group-cell{vertical-align:middle;padding:6px 8px;min-width:160px;white-space:nowrap;}
 tr.group-separator td{border-top:2px solid #9ca3af !important;}
+tr.stage-separator td{border-top:1px solid #b5b9c4 !important;}
 .item-cell{vertical-align:top;padding-top:6px;}
-.stage-cell{text-align:center;font-size:12px;font-weight:600;color:#333;min-width:48px;vertical-align:middle;}
+.stage-cell{text-align:center;font-size:12px;font-weight:normal;color:#333;min-width:48px;vertical-align:middle;}
 .n-idx-cell{text-align:center;font-size:11px;color:#888;min-width:36px;}
 .overall-cell{text-align:center;min-width:72px;cursor:default;position:relative;vertical-align:middle;}
 .overall-cell:hover{background:#fff !important;}

@@ -103,6 +103,17 @@ export default function SearchArea({
             <option value="notAdopted">不採用のみ</option>
           </select>
 
+          <span className="srch-lbl" style={{ marginLeft: 6 }}>変更種別</span>
+          <select
+            className="srch-sel"
+            value={rSrch.changeType}
+            onChange={(e) => onRSrchChange({ ...rSrch, changeType: e.target.value })}
+          >
+            <option value="">すべて</option>
+            <option value="added">追加</option>
+            <option value="updated">修正</option>
+          </select>
+
           <label
             style={{
               display: "flex",

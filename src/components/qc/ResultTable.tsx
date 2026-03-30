@@ -11,9 +11,10 @@ type ResultTableProps = {
 interface RowRenderInfo {
   row: QcResultItem;
   groupKey: string;
+  stageGroupKey: string;
   groupSpan: number | null;
+  stageGroupSpan: number | null;
   itemSpan: number | null;
-  stageSpan: number | null;
 }
 
 function toAnomalyKey(r: QcResultItem) {
@@ -50,6 +51,29 @@ export default function ResultTable({
     return m;
   }, [masters]);
 
+  // 段階グループ別総合結果（工程×バージョン×改版×検査段階 単位）
+  const stageOverallMap = useMemo(() => {
+    const m = new Map<string, "OK" | "NG" | "notAdopted">();
+    const stageGroups = new Map<string, { rowList: QcResultItem[]; gk: string }>();
+    rows.forEach((r) => {
+      const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
+      const sgk = `${gk}-${r.inspectionStage}`;
+      if (!stageGroups.has(sgk)) stageGroups.set(sgk, { rowList: [], gk });
+      stageGroups.get(sgk)!.rowList.push(r);
+    });
+    stageGroups.forEach(({ rowList, gk }, sgk) => {
+      const group = overallMap.get(gk);
+      if (group?.isAdopted === false) {
+        m.set(sgk, "notAdopted");
+      } else if (rowList.some((r) => r.judgement === "NG")) {
+        m.set(sgk, "NG");
+      } else {
+        m.set(sgk, "OK");
+      }
+    });
+    return m;
+  }, [rows, overallMap]);
+
   useEffect(() => {
     const handleOutsideClick = () => {
       setPinnedId(null);
@@ -59,44 +83,45 @@ export default function ResultTable({
     return () => document.removeEventListener("click", handleOutsideClick);
   }, []);
 
-  // rowSpan情報を事前計算（ページ内の rows に基づく）
+  // rowSpan情報：工程グループ → 段階グループ → 検査項目 → N数
   const renderInfos = useMemo((): RowRenderInfo[] => {
     const groupCounts = new Map<string, number>();
+    const stageGroupCounts = new Map<string, number>();
     const itemCounts = new Map<string, number>();
-    const stageCounts = new Map<string, number>();
 
     rows.forEach((r) => {
       const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
-      const ik = `${gk}-${r.checkItemName}`;
-      const sk = `${ik}-${r.inspectionStage}`;
+      const sgk = `${gk}-${r.inspectionStage}`;
+      const ik = `${sgk}-${r.checkItemName}`;
       groupCounts.set(gk, (groupCounts.get(gk) || 0) + 1);
+      stageGroupCounts.set(sgk, (stageGroupCounts.get(sgk) || 0) + 1);
       itemCounts.set(ik, (itemCounts.get(ik) || 0) + 1);
-      stageCounts.set(sk, (stageCounts.get(sk) || 0) + 1);
     });
 
     const seenGroups = new Set<string>();
+    const seenStageGroups = new Set<string>();
     const seenItems = new Set<string>();
-    const seenStages = new Set<string>();
 
     return rows.map((r) => {
       const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
-      const ik = `${gk}-${r.checkItemName}`;
-      const sk = `${ik}-${r.inspectionStage}`;
+      const sgk = `${gk}-${r.inspectionStage}`;
+      const ik = `${sgk}-${r.checkItemName}`;
 
       const isFirstGroup = !seenGroups.has(gk);
+      const isFirstStageGroup = !seenStageGroups.has(sgk);
       const isFirstItem = !seenItems.has(ik);
-      const isFirstStage = !seenStages.has(sk);
 
       seenGroups.add(gk);
+      seenStageGroups.add(sgk);
       seenItems.add(ik);
-      seenStages.add(sk);
 
       return {
         row: r,
         groupKey: gk,
+        stageGroupKey: sgk,
         groupSpan: isFirstGroup ? (groupCounts.get(gk) ?? 1) : null,
+        stageGroupSpan: isFirstStageGroup ? (stageGroupCounts.get(sgk) ?? 1) : null,
         itemSpan: isFirstItem ? (itemCounts.get(ik) ?? 1) : null,
-        stageSpan: isFirstStage ? (stageCounts.get(sk) ?? 1) : null,
       };
     });
   }, [rows]);
@@ -174,41 +199,40 @@ export default function ResultTable({
             </td>
           </tr>
         ) : (
-          renderInfos.map(({ row: r, groupKey, groupSpan, itemSpan, stageSpan }, rowIdx) => {
+          renderInfos.map(({ row: r, stageGroupKey, groupSpan, stageGroupSpan, itemSpan }, rowIdx) => {
             const rowId = String(r.id);
             const anomalyKey = toAnomalyKey(r);
             const anomaly = anomalyMap.get(anomalyKey);
             const hasAnomaly = r.judgement === "NG" && !!anomaly;
             const isActive = pinnedId === rowId;
             const isModPopupOpen = modPopupId === rowId;
-            const overall = overallMap.get(groupKey);
+            const stageOverall = stageOverallMap.get(stageGroupKey);
             const showGroupBorder = groupSpan !== null && rowIdx > 0;
+            const showStageBorder = stageGroupSpan !== null && !showGroupBorder && rowIdx > 0;
             const masterItem = masterMap.get(`${r.processCode}-${r.masterVersion}-${r.checkItemName}`);
 
             return (
               <tr
                 key={r.id}
-                className={`${r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}${showGroupBorder ? " group-separator" : ""}`}
+                className={`${r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}${showGroupBorder ? " group-separator" : showStageBorder ? " stage-separator" : ""}`}
               >
-                {/* 工程 / バージョン / 改版 — グループ rowSpan */}
+                {/* 工程 / バージョン / 改版 — グループ rowSpan・横並び表示 */}
                 {groupSpan !== null && (
                   <td rowSpan={groupSpan} className="group-cell">
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                      <span style={{ fontSize: 14, fontWeight: "bold", color: "#111" }}>{r.processCode}</span>
-                      <span style={{ fontSize: 14, fontWeight: "normal", color: "#333" }}>{r.masterVersion}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>改版{r.revisionNumber}</div>
+                    <span style={{ fontWeight: "bold" }}>{r.processCode}</span>
+                    {" "}<span style={{ fontWeight: "normal" }}>{r.masterVersion}</span>
+                    {" "}<span style={{ fontWeight: "normal" }}>改版{r.revisionNumber}</span>
                   </td>
                 )}
 
-                {/* 総合結果 — グループ rowSpan（自動判定・編集不可） */}
-                {groupSpan !== null && (
-                  <td rowSpan={groupSpan} className="overall-cell">
-                    {overall?.isAdopted === false ? (
+                {/* 総合結果 — 段階グループ rowSpan */}
+                {stageGroupSpan !== null && (
+                  <td rowSpan={stageGroupSpan} className="overall-cell">
+                    {stageOverall === "notAdopted" ? (
                       <span style={{ color: "#999", fontSize: 11 }}>対象外</span>
-                    ) : overall?.overallResult === "OK" ? (
+                    ) : stageOverall === "OK" ? (
                       <span className="bdg-ok">OK</span>
-                    ) : overall?.overallResult === "NG" ? (
+                    ) : stageOverall === "NG" ? (
                       <span className="bdg-ng">NG</span>
                     ) : (
                       <span style={{ color: "#999" }}>—</span>
@@ -221,28 +245,24 @@ export default function ResultTable({
                   {r.machineNumber}
                 </td>
 
-                {/* 検査項目名 — 項目 rowSpan */}
+                {/* 検査項目名 — 段階グループ内の項目 rowSpan */}
                 {itemSpan !== null && (
                   <td rowSpan={itemSpan} className="item-cell">
                     {r.checkItemName}
                   </td>
                 )}
 
-                {/* 検査段階 — 段階 rowSpan */}
-                {stageSpan !== null && (
-                  <td rowSpan={stageSpan} className="stage-cell">
+                {/* 検査段階 — 段階グループ rowSpan */}
+                {stageGroupSpan !== null && (
+                  <td rowSpan={stageGroupSpan} className="stage-cell">
                     {r.inspectionStage}
                   </td>
                 )}
 
-                {/* 検査方法 — 段階 rowSpan */}
-                {stageSpan !== null && (
-                  <td rowSpan={stageSpan} className="stage-cell" style={{ textAlign: "center" }}>
-                    {r.checkMethodType === "数値入力" ? (
-                      <span style={{ color: "#2d6db5", fontSize: 11, fontWeight: 600 }}>数値</span>
-                    ) : (
-                      <span style={{ color: "#888", fontSize: 11, fontWeight: 600 }}>合否</span>
-                    )}
+                {/* 検査方法 — 項目 rowSpan（色分け・太字なし） */}
+                {itemSpan !== null && (
+                  <td rowSpan={itemSpan} className="stage-cell" style={{ textAlign: "center" }}>
+                    {r.checkMethodType === "数値入力" ? "数値" : "合否"}
                   </td>
                 )}
 

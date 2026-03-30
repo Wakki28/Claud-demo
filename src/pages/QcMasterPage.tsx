@@ -44,6 +44,7 @@ const EMPTY_R_SRCH: ResultSearchState = {
   checkMethodType: "",
   adoptionStatus: "adopted",
   changedOnly: false,
+  changeType: "",
 };
 const EMPTY_M_SRCH: MasterSearchState = {
   processCode: "",
@@ -144,12 +145,15 @@ export default function QcMasterPage() {
       groupMap.set(`${o.processCode}-${o.masterVersion}-${o.revisionNumber}`, o);
     });
 
-    // 変更ありグループのキーセット（変更ありのみ表示フィルター用）
+    // 変更種別グループのキーセット
     const changedGroupKeys = new Set<string>();
+    const addedGroupKeys = new Set<string>();
+    const updatedGroupKeys = new Set<string>();
     results.forEach((r) => {
-      if (r.isAdded || r.isUpdated) {
-        changedGroupKeys.add(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`);
-      }
+      const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
+      if (r.isAdded || r.isUpdated) changedGroupKeys.add(gk);
+      if (r.isAdded) addedGroupKeys.add(gk);
+      if (r.isUpdated) updatedGroupKeys.add(gk);
     });
 
     return results.filter((r) => {
@@ -172,8 +176,6 @@ export default function QcMasterPage() {
       if (rApp.overallResult === "NG" && group?.overallResult !== "NG") return false;
 
       // 検査段階フィルター
-      // ※「中」は中1・中2・中3等すべての中段階に前方一致でマッチする
-      // 将来的に個別選択（中1のみ・中2のみ等）に変更する場合は以下の条件を拡張すること
       if (rApp.inspectionStage === "初" && r.inspectionStage !== "初") return false;
       if (rApp.inspectionStage === "中" && !r.inspectionStage.startsWith("中")) return false;
       if (rApp.inspectionStage === "終" && r.inspectionStage !== "終") return false;
@@ -184,11 +186,15 @@ export default function QcMasterPage() {
       // 変更ありのみ（追加または修正を含むグループのみ表示）
       if (rApp.changedOnly && !changedGroupKeys.has(gk)) return false;
 
+      // 変更種別フィルター（追加/修正を含むグループのみ表示）
+      if (rApp.changeType === "added" && !addedGroupKeys.has(gk)) return false;
+      if (rApp.changeType === "updated" && !updatedGroupKeys.has(gk)) return false;
+
       return true;
     });
   }, [results, computedOverallResults, rApp]);
 
-  // 正しい階層順にソート：工程 → バージョン → 改版 → 検査項目 → 検査段階（初→中→終）→ N数
+  // ソート順：工程 → バージョン → 改版 → 検査段階（初→中→終）→ 検査項目 → N数
   const sortedR = useMemo(
     () =>
       [...filtR].sort((a, b) => {
@@ -198,10 +204,10 @@ export default function QcMasterPage() {
         if (ver !== 0) return ver;
         const rev = a.revisionNumber - b.revisionNumber;
         if (rev !== 0) return rev;
-        const item = a.checkItemName.localeCompare(b.checkItemName, "ja");
-        if (item !== 0) return item;
         const stg = stageOrder(a.inspectionStage) - stageOrder(b.inspectionStage);
         if (stg !== 0) return stg;
+        const item = a.checkItemName.localeCompare(b.checkItemName, "ja");
+        if (item !== 0) return item;
         return a.nIndex - b.nIndex;
       }),
     [filtR],
