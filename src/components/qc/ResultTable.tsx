@@ -138,7 +138,7 @@ export default function ResultTable({
           <th rowSpan={2} style={{ verticalAlign: "middle", minWidth: 80, textAlign: "center" }}>
             変更種別
           </th>
-          <th rowSpan={2} style={{ verticalAlign: "middle" }}>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 80 }}>
             測定値
           </th>
           <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", width: 64, minWidth: 64 }}>
@@ -359,7 +359,13 @@ export default function ResultTable({
                 </td>
 
                 {/* 測定値 */}
-                <td>{r.measuredValue}</td>
+                <td style={{ textAlign: "center" }}>
+                  {r.measuredValue === "—" ? (
+                    <span style={{ color: "#ccc" }}>—</span>
+                  ) : (
+                    r.measuredValue
+                  )}
+                </td>
 
                 {/* 判定（異常インジケーター付き） */}
                 <td style={{ textAlign: "center", width: 64, minWidth: 64 }}>

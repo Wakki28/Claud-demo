@@ -55,7 +55,8 @@ export const QC_CSS = `
 table{width:100%;border-collapse:collapse;font-size:12px;}
 th{background:#1975D0;color:#fff;font-weight:600;padding:7px 8px;border-bottom:2px solid #1562b0;border-right:1px solid #1562b0;text-align:left;white-space:nowrap;}
 th:last-child{border-right:none;}
-td{padding:6px 8px;border-bottom:1px solid #edf0f5;border-right:1px solid #f0f3f8;vertical-align:middle;white-space:nowrap;font-size:12px;}
+thead tr:last-child th{border-bottom:2px solid #9ca3af;}
+td{padding:6px 8px;border-bottom:1px solid #d1d5db;border-right:1px solid #e5e7eb;vertical-align:middle;white-space:nowrap;font-size:12px;}
 td:last-child{border-right:none;}
 tr:last-child td{border-bottom:none;}
 .no-data{text-align:center;color:#aaa;padding:32px 0;}
@@ -184,7 +185,7 @@ tr.row-edited:hover td{background:#e4eefb;}
 .ie-btn-exec:disabled{background:#a0b8d4;cursor:default;}
 .ie-btn-exec.ie-btn-done{background:#29a745;}
 .group-cell{vertical-align:top;padding-top:8px;min-width:130px;}
-tr.group-separator td{border-top:2px solid #e0e0e0 !important;}
+tr.group-separator td{border-top:2px solid #9ca3af !important;}
 .item-cell{vertical-align:top;padding-top:6px;}
 .stage-cell{text-align:center;font-size:12px;font-weight:600;color:#333;min-width:48px;vertical-align:middle;}
 .n-idx-cell{text-align:center;font-size:11px;color:#888;min-width:36px;}
