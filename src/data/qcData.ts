@@ -5,7 +5,15 @@ export const PROCESS_VERSION_MAP: Record<string, string[]> = {
   P001: ["v1.0", "v2.0"],
   P002: ["v1.0"],
   P003: ["v2.0"],
-  P004: ["v1.0", "v2.0"],
+  P004: ["v2.0"],
+};
+
+// 工程単位の機番マスタ（工程内の全検査で同一機番を使用）
+export const MACHINE_NUMBER_MAP: Record<string, string> = {
+  P001: "M001",
+  P002: "M002",
+  P003: "M003",
+  P004: "M004",
 };
 
 export const PROCESS_CODES = Object.keys(PROCESS_VERSION_MAP);
@@ -122,13 +130,12 @@ export const DUMMY_MASTERS: QcMasterItem[] = (() => {
 })();
 
 // ── 実績ダミーデータ ──────────────────────────────────────
+// 採用方針：全4工程のうち1工程（25%）に不採用バージョンを持たせる（20〜30%目標）
 // 業務シナリオ：
 //   P001 v1.0 rev0（不採用）: 初段階のみ、N数3件で中断（改版のため未完了）
 //   P001 v2.0 rev0（採用）  : 全段階・全N数完了
 //   P002 v1.0 rev0（採用）  : 終段階のみ（1回検査パターン）、全N数完了
-//   P003 v2.0 rev0（不採用）: 初段階完了・終段階2件で中断（改版のため未完了）
-//   P003 v2.0 rev1（採用）  : 全段階・全N数完了
-//   P004 v1.0 rev0（不採用）: 初段階のみ、N数3件で中断（改版のため未完了）
+//   P003 v2.0 rev0（採用）  : 全段階・全N数完了
 //   P004 v2.0 rev0（採用）  : 全段階・全N数完了（一部修正履歴あり）
 export const DUMMY_RESULTS: QcResultItem[] = (() => {
   const rows: QcResultItem[] = [];
@@ -149,6 +156,8 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
     inspectedBy: string,
     registeredBy: string,
     regMinute: number,
+    machineNumber: string,
+    checkMethodType: string,
     isAdded: boolean, isUpdated: boolean,
     orig?: OriginalResultData,
   ): void => {
@@ -158,8 +167,10 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
       processCode: pc,
       masterVersion: ver,
       revisionNumber: rev,
+      machineNumber,
       checkItemName: item,
       inspectionStage: stage,
+      checkMethodType,
       nIndex: n,
       measuredValue: val,
       judgement: judge,
@@ -218,6 +229,10 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
       const daysAgo = baseDaysAgo - (itemIdx % 3);
       const effectiveN = maxN != null ? Math.min(nCount, maxN) : nCount;
 
+      // 工程単位の機番・検査方法を確定
+      const machineNumber = MACHINE_NUMBER_MAP[pc] ?? "";
+      const checkMethodType = isPassFail ? "合否判定" : "数値入力";
+
       stages.forEach((stage, stageIdx) => {
         // 検査項目×検査段階の単位で検査者・登録者を1人に固定する
         const inspector = INS[(itemIdx * 7 + stageIdx * 3) % INS.length];
@@ -256,7 +271,7 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
             );
           }
 
-          addRow(pc, ver, rev, itemName, stage, n, val, judge, daysAgo, insHour, inspector, registrant, regMinute, isAdded, isUpdated, orig);
+          addRow(pc, ver, rev, itemName, stage, n, val, judge, daysAgo, insHour, inspector, registrant, regMinute, machineNumber, checkMethodType, isAdded, isUpdated, orig);
         }
       });
     });
@@ -278,15 +293,8 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
   // ── P002: v1.0 rev0（採用）→ 終段階のみ（1回検査パターン）全N数完了 ──
   genItems("P002", "v1.0", 0, ITEMS_PER_PROCESS.P002, 12);
 
-  // ── P003: v2.0 rev0（不採用）→ 初段階完了・終段階2件で中断 ──
-  genItemsStaged("P003", "v2.0", 0, ITEMS_PER_PROCESS.P003, 22, ["初"]);
-  genItemsStaged("P003", "v2.0", 0, ITEMS_PER_PROCESS.P003, 20, ["終"], 2);
-
-  // ── P003: v2.0 rev1（採用）→ 全段階・全N数完了 ──────────
-  genItems("P003", "v2.0", 1, ITEMS_PER_PROCESS.P003, 6);
-
-  // ── P004: v1.0 rev0（不採用）→ 初段階のみ N数3件で中断 ──
-  genItemsStaged("P004", "v1.0", 0, ITEMS_PER_PROCESS.P004, 20, ["初"], 3);
+  // ── P003: v2.0 rev0（採用）→ 全段階・全N数完了 ──────────
+  genItems("P003", "v2.0", 0, ITEMS_PER_PROCESS.P003, 6);
 
   // ── P004: v2.0 rev0（採用）→ 全段階・全N数完了（修正履歴あり）──
   genItems("P004", "v2.0", 0, ITEMS_PER_PROCESS.P004, 5, false, true);
@@ -295,13 +303,13 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
 })();
 
 // ── 総合結果グループ情報（採用状態のみ管理・overallResultは自動計算）────
+// 採用状態グループ定義
+// P001のみ不採用バージョンあり（4工程中1工程 = 25%）
 export const DUMMY_OVERALL_RESULTS: QcGroupOverall[] = [
   { processCode: "P001", masterVersion: "v1.0", revisionNumber: 0, isAdopted: false },
   { processCode: "P001", masterVersion: "v2.0", revisionNumber: 0, isAdopted: true  },
   { processCode: "P002", masterVersion: "v1.0", revisionNumber: 0, isAdopted: true  },
-  { processCode: "P003", masterVersion: "v2.0", revisionNumber: 0, isAdopted: false },
-  { processCode: "P003", masterVersion: "v2.0", revisionNumber: 1, isAdopted: true  },
-  { processCode: "P004", masterVersion: "v1.0", revisionNumber: 0, isAdopted: false },
+  { processCode: "P003", masterVersion: "v2.0", revisionNumber: 0, isAdopted: true  },
   { processCode: "P004", masterVersion: "v2.0", revisionNumber: 0, isAdopted: true  },
 ];
 
@@ -328,13 +336,8 @@ export const DUMMY_ANOMALIES: AnomalyInfo[] = [
     detectedAt: "2026/02/09 09:00",
   },
   {
-    rowId: "P003-v2.0-rev0-外観検査",
-    reason: "表面に微細なクラックを検出（長さ約0.3mm、2箇所）。目視確認済み。改版のため以降の検査は改版1で実施。",
-    detectedAt: "2026/02/07 08:00",
-  },
-  {
-    rowId: "P003-v2.0-rev1-色彩検査",
-    reason: "改版後の色彩検査で終段階N数1がNG判定。許容範囲との乖離を確認中。",
+    rowId: "P003-v2.0-rev0-色彩検査",
+    reason: "色彩検査で終段階N数1がNG判定。許容範囲との乖離を確認中。",
     detectedAt: "2026/02/14 11:00",
   },
   {

@@ -47,6 +47,14 @@ export default function SearchArea({
             onChange={(e) => onRSrchChange({ ...rSrch, checkItemName: e.target.value })}
           />
 
+          <span className="srch-lbl" style={{ marginLeft: 6 }}>機番</span>
+          <input
+            className="srch-inp"
+            style={{ minWidth: 70 }}
+            value={rSrch.machineNumber}
+            onChange={(e) => onRSrchChange({ ...rSrch, machineNumber: e.target.value })}
+          />
+
           <span className="srch-lbl" style={{ marginLeft: 6 }}>総合結果</span>
           <select
             className="srch-sel"
@@ -56,7 +64,6 @@ export default function SearchArea({
             <option value="">すべて</option>
             <option value="OK">OK</option>
             <option value="NG">NG</option>
-            <option value="検査中">検査中</option>
           </select>
 
           <span className="srch-lbl" style={{ marginLeft: 6 }}>検査段階</span>
@@ -67,8 +74,22 @@ export default function SearchArea({
           >
             <option value="">すべて</option>
             <option value="初">初</option>
+            {/* "中"を選択すると中1・中2・中3等すべての中段階にマッチする（前方一致）
+                将来的に中1のみ・中2のみ等の個別選択に対応する場合は
+                filtR 内の検査段階フィルター箇所（QcMasterPage.tsx）を修正すること */}
             <option value="中">中</option>
             <option value="終">終</option>
+          </select>
+
+          <span className="srch-lbl" style={{ marginLeft: 6 }}>検査方法</span>
+          <select
+            className="srch-sel"
+            value={rSrch.checkMethodType}
+            onChange={(e) => onRSrchChange({ ...rSrch, checkMethodType: e.target.value })}
+          >
+            <option value="">すべて</option>
+            <option value="数値入力">数値入力</option>
+            <option value="合否判定">合否判定</option>
           </select>
 
           <span className="srch-lbl" style={{ marginLeft: 6 }}>採用状態</span>

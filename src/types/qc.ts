@@ -9,8 +9,10 @@ export type QcResultItem = {
   processCode: string;
   masterVersion: string;
   revisionNumber: number;
+  machineNumber: string;      // 機番（工程単位で固定）
   checkItemName: string;      // 検査項目（改版の下）
   inspectionStage: string;    // 検査段階（検査項目の下：初/中1/中2.../終）
+  checkMethodType: string;    // 検査方法（数値入力 / 合否判定）
   nIndex: number;             // N数番号（1始まり）
   measuredValue: string;
   judgement: "OK" | "NG" | "-";
@@ -29,7 +31,7 @@ export type QcGroupOverall = {
   processCode: string;
   masterVersion: string;
   revisionNumber: number;
-  overallResult?: "OK" | "NG" | null; // 計算値（nullは検査中）
+  overallResult?: "OK" | "NG" | null; // 計算値（nullは未完了/対象外）
   isAdopted: boolean;
 };
 
@@ -54,10 +56,12 @@ export type ResultSearchState = {
   processCode: string;
   masterVersion: string;
   checkItemName: string;
-  overallResult: string;      // すべて/"OK"/"NG"/"検査中"
-  inspectionStage: string;   // すべて/"初"/"中"/"終"
-  adoptionStatus: string;    // ""=すべて / "adopted" / "notAdopted"
-  changedOnly: boolean;      // 変更ありのみ表示
+  machineNumber: string;      // 機番（部分一致）
+  overallResult: string;      // すべて/"OK"/"NG"
+  inspectionStage: string;    // すべて/"初"/"中"/"終"
+  checkMethodType: string;    // すべて/"数値入力"/"合否判定"
+  adoptionStatus: string;     // ""=すべて / "adopted" / "notAdopted"
+  changedOnly: boolean;       // 変更ありのみ表示
 };
 
 export type MasterSearchState = {

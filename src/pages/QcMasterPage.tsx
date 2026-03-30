@@ -38,8 +38,10 @@ const EMPTY_R_SRCH: ResultSearchState = {
   processCode: "",
   masterVersion: "",
   checkItemName: "",
+  machineNumber: "",
   overallResult: "",
   inspectionStage: "",
+  checkMethodType: "",
   adoptionStatus: "adopted",
   changedOnly: false,
 };
@@ -162,18 +164,22 @@ export default function QcMasterPage() {
       if (rApp.adoptionStatus === "adopted" && group?.isAdopted === false) return false;
       if (rApp.adoptionStatus === "notAdopted" && group?.isAdopted !== false) return false;
 
+      // 機番フィルター（部分一致）
+      if (rApp.machineNumber && !r.machineNumber.includes(rApp.machineNumber)) return false;
+
       // 総合結果フィルター（自動計算値で判定・工程×バージョン×改版 単位）
       if (rApp.overallResult === "OK" && group?.overallResult !== "OK") return false;
       if (rApp.overallResult === "NG" && group?.overallResult !== "NG") return false;
-      if (rApp.overallResult === "検査中") {
-        // 採用バージョンかつ検査未完了のグループのみ
-        if (group?.overallResult != null || group?.isAdopted === false) return false;
-      }
 
-      // 検査段階フィルター（"中"は中1・中2等すべてにマッチ）
+      // 検査段階フィルター
+      // ※「中」は中1・中2・中3等すべての中段階に前方一致でマッチする
+      // 将来的に個別選択（中1のみ・中2のみ等）に変更する場合は以下の条件を拡張すること
       if (rApp.inspectionStage === "初" && r.inspectionStage !== "初") return false;
       if (rApp.inspectionStage === "中" && !r.inspectionStage.startsWith("中")) return false;
       if (rApp.inspectionStage === "終" && r.inspectionStage !== "終") return false;
+
+      // 検査方法フィルター（完全一致）
+      if (rApp.checkMethodType && r.checkMethodType !== rApp.checkMethodType) return false;
 
       // 変更ありのみ（追加または修正を含むグループのみ表示）
       if (rApp.changedOnly && !changedGroupKeys.has(gk)) return false;
