@@ -291,19 +291,17 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
   genItems("P001", "v2.0", 0, ITEMS_PER_PROCESS.P001.slice(0, 1), 8, true, false);
   genItems("P001", "v2.0", 0, ITEMS_PER_PROCESS.P001.slice(1), 8, false, false);
 
-  // ── P002: v1.0 rev0（採用）→ 先頭1件を「追加」、次の1件を「修正」、残りは通常 ──
-  genItems("P002", "v1.0", 0, ITEMS_PER_PROCESS.P002.slice(0, 1), 12, true, false);
-  genItems("P002", "v1.0", 0, ITEMS_PER_PROCESS.P002.slice(1, 2), 12, false, true);
+  // ── P002: v1.0 rev0（採用）→ 先頭2件を「修正」、残りは通常 ──
+  genItems("P002", "v1.0", 0, ITEMS_PER_PROCESS.P002.slice(0, 2), 12, false, true);
   genItems("P002", "v1.0", 0, ITEMS_PER_PROCESS.P002.slice(2), 12, false, false);
 
   // ── P003: v2.0 rev0（採用）→ 先頭1件を「追加」、残りは通常 ──────
   genItems("P003", "v2.0", 0, ITEMS_PER_PROCESS.P003.slice(0, 1), 6, true, false);
   genItems("P003", "v2.0", 0, ITEMS_PER_PROCESS.P003.slice(1), 6, false, false);
 
-  // ── P004: v2.0 rev0（採用）→ 先頭2件を「修正」、次の1件を「追加」、残りは通常 ──
+  // ── P004: v2.0 rev0（採用）→ 先頭2件を「修正」、残りは通常 ──
   genItems("P004", "v2.0", 0, ITEMS_PER_PROCESS.P004.slice(0, 2), 5, false, true);
-  genItems("P004", "v2.0", 0, ITEMS_PER_PROCESS.P004.slice(2, 3), 5, true, false);
-  genItems("P004", "v2.0", 0, ITEMS_PER_PROCESS.P004.slice(3), 5, false, false);
+  genItems("P004", "v2.0", 0, ITEMS_PER_PROCESS.P004.slice(2), 5, false, false);
 
   return rows;
 })();
