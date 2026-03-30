@@ -1,7 +1,7 @@
 // ── QC マスタ管理 型定義 ──────────────────────────────────
 
 export type QcViewMode = "result" | "master";
-export type QcPageSize = 10 | 20 | 50;
+export type QcPageSize = 10 | 50 | 100;
 
 // 正しい階層：工程 > バージョン > 改版 > 検査項目 > 検査段階 > 検査結果(N数)
 export type QcResultItem = {

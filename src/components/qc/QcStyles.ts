@@ -53,9 +53,8 @@ export const QC_CSS = `
 .tbl-outer{border:1px solid #dde2ea;border-radius:3px;background:#fff;overflow:hidden;}
 .tbl-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:12px;}
-th{background:#1975D0;color:#fff;font-weight:600;padding:7px 8px;border-bottom:2px solid #1562b0;border-right:1px solid #1562b0;text-align:left;white-space:nowrap;}
+th{background:#1975D0;color:#fff;font-weight:600;padding:7px 8px;border-bottom:2px solid #9ca3af;border-right:1px solid #1562b0;text-align:left;white-space:nowrap;}
 th:last-child{border-right:none;}
-thead tr:last-child th{border-bottom:2px solid #9ca3af;}
 td{padding:6px 8px;border-bottom:1px solid #d1d5db;border-right:1px solid #e5e7eb;vertical-align:middle;white-space:nowrap;font-size:12px;}
 td:last-child{border-right:none;}
 tr:last-child td{border-bottom:none;}

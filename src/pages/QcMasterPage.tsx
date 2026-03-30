@@ -70,7 +70,7 @@ export default function QcMasterPage() {
 
   // タブ・ページング
   const [viewMode, setViewMode] = useState<QcViewMode>("master");
-  const [pageSize, setPageSize] = useState<QcPageSize>(10);
+  const [pageSize, setPageSize] = useState<QcPageSize>(50);
   const [currentPage, setCurrentPage] = useState(1);
 
   // 検索（入力中 / 確定済み）
@@ -391,7 +391,7 @@ export default function QcMasterPage() {
                       value={pageSize}
                       onChange={(e) => handlePageSizeChange(Number(e.target.value))}
                     >
-                      {[10, 20, 50].map((n) => (
+                      {[10, 50, 100].map((n) => (
                         <option key={n} value={n}>
                           {n}件
                         </option>
