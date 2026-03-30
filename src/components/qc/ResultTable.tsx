@@ -277,14 +277,14 @@ export default function ResultTable({
                 {/* 規格上限 — 検査項目 rowSpan */}
                 {itemGroupSpan !== null && (
                   <td rowSpan={itemGroupSpan} style={{ textAlign: "center", fontSize: 12, color: "#555", minWidth: 64, verticalAlign: "middle" }}>
-                    {masterItem?.specUpperLimit != null ? masterItem.specUpperLimit : "—"}
+                    {masterItem?.specUpperLimit != null ? `${masterItem.specUpperLimit} mm` : "—"}
                   </td>
                 )}
 
                 {/* 規格下限 — 検査項目 rowSpan */}
                 {itemGroupSpan !== null && (
                   <td rowSpan={itemGroupSpan} style={{ textAlign: "center", fontSize: 12, color: "#555", minWidth: 64, verticalAlign: "middle" }}>
-                    {masterItem?.specLowerLimit != null ? masterItem.specLowerLimit : "—"}
+                    {masterItem?.specLowerLimit != null ? `${masterItem.specLowerLimit} mm` : "—"}
                   </td>
                 )}
 
