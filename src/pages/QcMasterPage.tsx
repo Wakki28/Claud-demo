@@ -204,10 +204,10 @@ export default function QcMasterPage() {
         if (ver !== 0) return ver;
         const rev = a.revisionNumber - b.revisionNumber;
         if (rev !== 0) return rev;
-        const stg = stageOrder(a.inspectionStage) - stageOrder(b.inspectionStage);
-        if (stg !== 0) return stg;
         const item = a.checkItemName.localeCompare(b.checkItemName, "ja");
         if (item !== 0) return item;
+        const stg = stageOrder(a.inspectionStage) - stageOrder(b.inspectionStage);
+        if (stg !== 0) return stg;
         return a.nIndex - b.nIndex;
       }),
     [filtR],
