@@ -67,7 +67,7 @@ tr:last-child td{border-bottom:none;}
 .badge-updated{font-size:11px;font-weight:700;color:#c2410c;}
 tr.row-added   td{background:#eff6ff !important;}
 tr.row-updated td{background:#fff7ed !important;}
-tr.row-normal:hover td{background:#f0f5fc;}
+tr.row-normal:hover td{background:#f5f5f5;}
 .th-inspect{background:#1975D0;}
 .th-reg{background:#1975D0;}
 .btn-edt{background:#fff;color:#2d6db5;border:1px solid #2d6db5;border-radius:2px;padding:2px 8px;font-size:11px;cursor:pointer;margin-right:3px;}
@@ -189,7 +189,7 @@ tr.group-separator td{border-top:2px solid #e0e0e0 !important;}
 .stage-cell{text-align:center;font-size:12px;font-weight:600;color:#333;min-width:48px;vertical-align:middle;}
 .n-idx-cell{text-align:center;font-size:11px;color:#888;min-width:36px;}
 .overall-cell{text-align:center;min-width:72px;cursor:pointer;position:relative;vertical-align:middle;}
-.overall-cell:hover{background:#f0f5ff !important;}
+.overall-cell:hover{background:inherit !important;}
 .overall-cell-readonly{cursor:default !important;}
 .overall-cell-readonly:hover{background:inherit !important;}
 .overall-edit-wrap{display:inline-flex;gap:4px;justify-content:center;align-items:center;}
