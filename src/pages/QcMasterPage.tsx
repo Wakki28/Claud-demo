@@ -36,8 +36,10 @@ const EMPTY_R_SRCH: ResultSearchState = {
   processCode: "",
   masterVersion: "",
   checkItemName: "",
-  judgement: "",
-  changeType: "",
+  overallResult: "",
+  inspectionStage: "",
+  adoptionStatus: "adopted",
+  changedOnly: false,
 };
 const EMPTY_M_SRCH: MasterSearchState = {
   processCode: "",
@@ -94,20 +96,52 @@ export default function QcMasterPage() {
   const [ieModal, setIeModal] = useState<{ tab: "import" | "export" } | null>(null);
 
   // フィルタ済みデータ
-  const filtR = useMemo(
-    () =>
-      results.filter((r) => {
-        if (rApp.processCode && r.processCode !== rApp.processCode) return false;
-        if (rApp.masterVersion && r.masterVersion !== rApp.masterVersion) return false;
-        if (rApp.checkItemName && !r.checkItemName.includes(rApp.checkItemName)) return false;
-        if (rApp.judgement && r.judgement !== rApp.judgement) return false;
-        if (rApp.changeType === "added") return r.isAdded;
-        if (rApp.changeType === "updated") return r.isUpdated;
-        if (rApp.changeType === "normal") return !r.isAdded && !r.isUpdated;
-        return true;
-      }),
-    [results, rApp],
-  );
+  const filtR = useMemo(() => {
+    // 総合結果・採用状態のグループマップ
+    const groupMap = new Map<string, typeof overallResults[0]>();
+    overallResults.forEach((o) => {
+      groupMap.set(`${o.processCode}-${o.masterVersion}-${o.revisionNumber}`, o);
+    });
+
+    // 変更ありグループのキーセット（変更ありのみ表示フィルター用）
+    const changedGroupKeys = new Set<string>();
+    results.forEach((r) => {
+      if (r.isAdded || r.isUpdated) {
+        changedGroupKeys.add(`${r.processCode}-${r.masterVersion}-${r.revisionNumber}`);
+      }
+    });
+
+    return results.filter((r) => {
+      if (rApp.processCode && r.processCode !== rApp.processCode) return false;
+      if (rApp.masterVersion && r.masterVersion !== rApp.masterVersion) return false;
+      if (rApp.checkItemName && !r.checkItemName.includes(rApp.checkItemName)) return false;
+
+      const gk = `${r.processCode}-${r.masterVersion}-${r.revisionNumber}`;
+      const group = groupMap.get(gk);
+
+      // 採用状態フィルター
+      if (rApp.adoptionStatus === "adopted" && group?.isAdopted === false) return false;
+      if (rApp.adoptionStatus === "notAdopted" && group?.isAdopted !== false) return false;
+
+      // 総合結果フィルター（工程×バージョン×改版 単位）
+      if (rApp.overallResult === "OK" && group?.overallResult !== "OK") return false;
+      if (rApp.overallResult === "NG" && group?.overallResult !== "NG") return false;
+      if (rApp.overallResult === "未登録") {
+        // 採用バージョンかつ未登録のグループのみ
+        if (group?.overallResult != null || group?.isAdopted === false) return false;
+      }
+
+      // 検査段階フィルター（"中"は中1・中2等すべてにマッチ）
+      if (rApp.inspectionStage === "初" && r.inspectionStage !== "初") return false;
+      if (rApp.inspectionStage === "中" && !r.inspectionStage.startsWith("中")) return false;
+      if (rApp.inspectionStage === "終" && r.inspectionStage !== "終") return false;
+
+      // 変更ありのみ（追加または修正を含むグループのみ表示）
+      if (rApp.changedOnly && !changedGroupKeys.has(gk)) return false;
+
+      return true;
+    });
+  }, [results, overallResults, rApp]);
 
   // 正しい階層順にソート：工程 → バージョン → 改版 → 検査項目 → 検査段階（初→中→終）→ N数
   const sortedR = useMemo(

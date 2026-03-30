@@ -31,6 +31,7 @@ export type QcGroupOverall = {
   overallResult: "OK" | "NG" | null;
   overallResultAt?: string;
   overallResultBy?: string;
+  isAdopted: boolean;
 };
 
 export type QcMasterItem = {
@@ -54,8 +55,10 @@ export type ResultSearchState = {
   processCode: string;
   masterVersion: string;
   checkItemName: string;
-  judgement: string;
-  changeType: string;
+  overallResult: string;      // すべて/"OK"/"NG"/"未登録"
+  inspectionStage: string;   // すべて/"初"/"中"/"終"
+  adoptionStatus: string;    // ""=すべて / "adopted" / "notAdopted"
+  changedOnly: boolean;      // 変更ありのみ表示
 };
 
 export type MasterSearchState = {

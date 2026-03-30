@@ -266,19 +266,19 @@ export const DUMMY_RESULTS: QcResultItem[] = (() => {
 
 // ── 総合結果ダミーデータ（工程 × バージョン × 改版 単位） ────────
 export const DUMMY_OVERALL_RESULTS: QcGroupOverall[] = [
-  { processCode: "P001", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(10), overallResultBy: "高宮 織太" },
-  { processCode: "P001", masterVersion: "v2.0", revisionNumber: 0, overallResult: null },
-  { processCode: "P001", masterVersion: "v2.0", revisionNumber: 1, overallResult: "NG",  overallResultAt: mkDate(3),  overallResultBy: "高宮 織太" },
-  { processCode: "P001", masterVersion: "v3.0", revisionNumber: 0, overallResult: null },
-  { processCode: "P002", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(11), overallResultBy: "高宮 織太" },
-  { processCode: "P002", masterVersion: "v2.0", revisionNumber: 0, overallResult: "NG",  overallResultAt: mkDate(6),  overallResultBy: "高宮 織太" },
-  { processCode: "P002", masterVersion: "v2.0", revisionNumber: 1, overallResult: null },
-  { processCode: "P003", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(12), overallResultBy: "高宮 織太" },
-  { processCode: "P003", masterVersion: "v1.0", revisionNumber: 1, overallResult: null },
-  { processCode: "P004", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(7),  overallResultBy: "高宮 織太" },
-  { processCode: "P004", masterVersion: "v2.0", revisionNumber: 0, overallResult: "NG",  overallResultAt: mkDate(4),  overallResultBy: "高宮 織太" },
-  { processCode: "P004", masterVersion: "v2.0", revisionNumber: 1, overallResult: null },
-  { processCode: "P004", masterVersion: "v2.1", revisionNumber: 0, overallResult: null },
+  { processCode: "P001", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(10), overallResultBy: "高宮 織太", isAdopted: true },
+  { processCode: "P001", masterVersion: "v2.0", revisionNumber: 0, overallResult: null,  isAdopted: true },
+  { processCode: "P001", masterVersion: "v2.0", revisionNumber: 1, overallResult: "NG",  overallResultAt: mkDate(3),  overallResultBy: "高宮 織太", isAdopted: false },
+  { processCode: "P001", masterVersion: "v3.0", revisionNumber: 0, overallResult: null,  isAdopted: true },
+  { processCode: "P002", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(11), overallResultBy: "高宮 織太", isAdopted: true },
+  { processCode: "P002", masterVersion: "v2.0", revisionNumber: 0, overallResult: "NG",  overallResultAt: mkDate(6),  overallResultBy: "高宮 織太", isAdopted: false },
+  { processCode: "P002", masterVersion: "v2.0", revisionNumber: 1, overallResult: null,  isAdopted: true },
+  { processCode: "P003", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(12), overallResultBy: "高宮 織太", isAdopted: true },
+  { processCode: "P003", masterVersion: "v1.0", revisionNumber: 1, overallResult: null,  isAdopted: true },
+  { processCode: "P004", masterVersion: "v1.0", revisionNumber: 0, overallResult: "OK",  overallResultAt: mkDate(7),  overallResultBy: "高宮 織太", isAdopted: true },
+  { processCode: "P004", masterVersion: "v2.0", revisionNumber: 0, overallResult: "NG",  overallResultAt: mkDate(4),  overallResultBy: "高宮 織太", isAdopted: false },
+  { processCode: "P004", masterVersion: "v2.0", revisionNumber: 1, overallResult: null,  isAdopted: true },
+  { processCode: "P004", masterVersion: "v2.1", revisionNumber: 0, overallResult: null,  isAdopted: true },
 ];
 
 // ── 異常理由ダミーデータ ──────────────────────────────────

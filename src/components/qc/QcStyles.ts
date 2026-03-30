@@ -62,8 +62,7 @@ tr:last-child td{border-bottom:none;}
 .bdg-ok{font-size:11px;font-weight:700;color:#22c55e;}
 .bdg-ng{font-size:11px;font-weight:700;color:#ef4444;}
 .bdg-na{font-size:11px;font-weight:700;color:#9ca3af;}
-.ver-badge{display:inline-block;padding:1px 6px;border-radius:2px;font-size:11px;background:#eef3fb;color:#2d6db5;border:1px solid #b8cce8;white-space:nowrap;}
-.process-badge{display:inline-block;padding:2px 7px;border-radius:2px;font-size:11px;background:#e8eef6;color:#1e3a5f;border:1px solid #c4d3e8;font-weight:600;white-space:nowrap;}
+.bdg-unregistered{display:inline-block;padding:1px 6px;border-radius:2px;font-size:11px;font-weight:700;background:#fff3e0;color:#e65100;border:1px solid #ffb74d;white-space:nowrap;}
 .badge-added{font-size:11px;font-weight:700;color:#1d4ed8;}
 .badge-updated{font-size:11px;font-weight:700;color:#c2410c;}
 tr.row-added   td{background:#eff6ff !important;}
@@ -187,11 +186,14 @@ tr.row-edited:hover td{background:#e4eefb;}
 .ie-btn-exec:disabled{background:#a0b8d4;cursor:default;}
 .ie-btn-exec.ie-btn-done{background:#29a745;}
 .group-cell{vertical-align:top;padding-top:8px;min-width:120px;}
+tr.group-separator td{border-top:2px solid #e0e0e0 !important;}
 .item-cell{vertical-align:top;padding-top:6px;}
 .stage-cell{text-align:center;font-size:12px;font-weight:600;color:#333;min-width:48px;vertical-align:middle;}
 .n-idx-cell{text-align:center;font-size:11px;color:#888;min-width:36px;}
 .overall-cell{text-align:center;min-width:72px;cursor:pointer;position:relative;vertical-align:middle;}
 .overall-cell:hover{background:#f0f5ff !important;}
+.overall-cell-readonly{cursor:default !important;}
+.overall-cell-readonly:hover{background:inherit !important;}
 .overall-edit-wrap{display:inline-flex;gap:4px;justify-content:center;align-items:center;}
 .btn-overall-ok{background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:3px;padding:2px 8px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .btn-overall-ok:hover{background:#bbf7d0;}

@@ -47,29 +47,61 @@ export default function SearchArea({
             onChange={(e) => onRSrchChange({ ...rSrch, checkItemName: e.target.value })}
           />
 
-          <span className="srch-lbl" style={{ marginLeft: 6 }}>判定</span>
+          <span className="srch-lbl" style={{ marginLeft: 6 }}>総合結果</span>
           <select
             className="srch-sel"
-            value={rSrch.judgement}
-            onChange={(e) => onRSrchChange({ ...rSrch, judgement: e.target.value })}
+            value={rSrch.overallResult}
+            onChange={(e) => onRSrchChange({ ...rSrch, overallResult: e.target.value })}
           >
             <option value="">すべて</option>
             <option value="OK">OK</option>
             <option value="NG">NG</option>
+            <option value="未登録">未登録</option>
           </select>
 
-          <span className="srch-lbl" style={{ marginLeft: 6 }}>変更種別</span>
+          <span className="srch-lbl" style={{ marginLeft: 6 }}>検査段階</span>
           <select
             className="srch-sel"
-            style={{ minWidth: 110 }}
-            value={rSrch.changeType}
-            onChange={(e) => onRSrchChange({ ...rSrch, changeType: e.target.value })}
+            value={rSrch.inspectionStage}
+            onChange={(e) => onRSrchChange({ ...rSrch, inspectionStage: e.target.value })}
           >
             <option value="">すべて</option>
-            <option value="added">追加検査項目</option>
-            <option value="updated">修正済み項目</option>
-            <option value="normal">通常</option>
+            <option value="初">初</option>
+            <option value="中">中</option>
+            <option value="終">終</option>
           </select>
+
+          <span className="srch-lbl" style={{ marginLeft: 6 }}>採用状態</span>
+          <select
+            className="srch-sel"
+            value={rSrch.adoptionStatus}
+            onChange={(e) => onRSrchChange({ ...rSrch, adoptionStatus: e.target.value })}
+          >
+            <option value="">すべて</option>
+            <option value="adopted">採用のみ</option>
+            <option value="notAdopted">不採用のみ</option>
+          </select>
+
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              marginLeft: 10,
+              fontSize: 12,
+              color: "#555",
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={rSrch.changedOnly}
+              onChange={(e) => onRSrchChange({ ...rSrch, changedOnly: e.target.checked })}
+              style={{ cursor: "pointer", accentColor: "#2d6db5" }}
+            />
+            変更ありのみ表示
+          </label>
         </div>
       )}
 

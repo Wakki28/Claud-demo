@@ -178,7 +178,7 @@ export default function ResultTable({
             </td>
           </tr>
         ) : (
-          renderInfos.map(({ row: r, groupKey, groupSpan, itemSpan, stageSpan }) => {
+          renderInfos.map(({ row: r, groupKey, groupSpan, itemSpan, stageSpan }, rowIdx) => {
             const rowId = String(r.id);
             const anomalyKey = toAnomalyKey(r);
             const anomaly = anomalyMap.get(anomalyKey);
@@ -187,18 +187,19 @@ export default function ResultTable({
             const isModPopupOpen = modPopupId === rowId;
             const isEditingOverall = editingOverallKey === groupKey;
             const overall = overallMap.get(groupKey);
+            const showGroupBorder = groupSpan !== null && rowIdx > 0;
 
             return (
               <tr
                 key={r.id}
-                className={r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}
+                className={`${r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}${showGroupBorder ? " group-separator" : ""}`}
               >
                 {/* 工程 / バージョン / 改版 — グループ rowSpan */}
                 {groupSpan !== null && (
                   <td rowSpan={groupSpan} className="group-cell">
-                    <span className="process-badge">{r.processCode}</span>
+                    <strong>{r.processCode}</strong>
                     {" "}
-                    <span className="ver-badge">{r.masterVersion}</span>
+                    {r.masterVersion}
                     <br />
                     <span style={{ fontSize: 11, color: "#777" }}>改版{r.revisionNumber}</span>
                   </td>
@@ -208,17 +209,21 @@ export default function ResultTable({
                 {groupSpan !== null && (
                   <td
                     rowSpan={groupSpan}
-                    className="overall-cell"
+                    className={`overall-cell${overall?.isAdopted === false ? " overall-cell-readonly" : ""}`}
                     title={
                       isEditingOverall
                         ? undefined
-                        : overall?.overallResult != null
-                          ? "クリックして修正"
-                          : "クリックして登録"
+                        : overall?.isAdopted === false
+                          ? undefined
+                          : overall?.overallResult != null
+                            ? "クリックして修正"
+                            : "クリックして登録"
                     }
-                    onClick={(e) => handleOverallClick(e, groupKey)}
+                    onClick={overall?.isAdopted !== false ? (e) => handleOverallClick(e, groupKey) : undefined}
                   >
-                    {isEditingOverall ? (
+                    {overall?.isAdopted === false ? (
+                      <span style={{ color: "#ccc" }}>—</span>
+                    ) : isEditingOverall ? (
                       <div
                         className="overall-edit-wrap"
                         onClick={(e) => e.stopPropagation()}
@@ -255,7 +260,7 @@ export default function ResultTable({
                     ) : overall?.overallResult === "NG" ? (
                       <span className="bdg-ng">NG</span>
                     ) : (
-                      <span style={{ color: "#ccc" }}>—</span>
+                      <span className="bdg-unregistered">未登録</span>
                     )}
                   </td>
                 )}
