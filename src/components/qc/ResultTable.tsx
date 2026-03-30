@@ -102,6 +102,9 @@ export default function ResultTable({
           <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 72 }}>
             総合結果
           </th>
+          <th rowSpan={2} style={{ verticalAlign: "middle", textAlign: "center", minWidth: 60 }}>
+            機番
+          </th>
           <th rowSpan={2} style={{ verticalAlign: "middle" }}>
             検査項目名
           </th>
@@ -148,7 +151,7 @@ export default function ResultTable({
       <tbody>
         {rows.length === 0 ? (
           <tr>
-            <td colSpan={13} className="no-data">
+            <td colSpan={14} className="no-data">
               データがありません
             </td>
           </tr>
@@ -168,7 +171,7 @@ export default function ResultTable({
                 key={r.id}
                 className={`${r.isAdded ? "row-added" : r.isUpdated ? "row-updated" : "row-normal"}${showGroupBorder ? " group-separator" : ""}`}
               >
-                {/* 工程 / バージョン / 改版 / 機番 — グループ rowSpan */}
+                {/* 工程 / バージョン / 改版 — グループ rowSpan */}
                 {groupSpan !== null && (
                   <td rowSpan={groupSpan} className="group-cell">
                     <strong>{r.processCode}</strong>
@@ -176,8 +179,6 @@ export default function ResultTable({
                     {r.masterVersion}
                     <br />
                     <span style={{ fontSize: 11, color: "#777" }}>改版{r.revisionNumber}</span>
-                    <br />
-                    <span style={{ fontSize: 11, color: "#555" }}>{r.machineNumber}</span>
                   </td>
                 )}
 
@@ -195,6 +196,11 @@ export default function ResultTable({
                     )}
                   </td>
                 )}
+
+                {/* 機番 — グループ先頭行のみ値、以降は — */}
+                <td style={{ textAlign: "center", fontSize: 12, color: groupSpan !== null ? "#333" : "#bbb" }}>
+                  {groupSpan !== null ? r.machineNumber : "—"}
+                </td>
 
                 {/* 検査項目名 — 項目 rowSpan */}
                 {itemSpan !== null && (
