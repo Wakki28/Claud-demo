@@ -27,7 +27,8 @@ export default function ResultTable({
   overallResults,
   masters = [],
 }: ResultTableProps) {
-  const [pinnedId, setPinnedId] = useState<string | null>(null);
+  const [hoveredAnomalyId, setHoveredAnomalyId] = useState<string | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [modPopupId, setModPopupId] = useState<string | null>(null);
 
   const anomalyMap = useMemo(
@@ -75,10 +76,7 @@ export default function ResultTable({
   }, [rows, overallMap]);
 
   useEffect(() => {
-    const handleOutsideClick = () => {
-      setPinnedId(null);
-      setModPopupId(null);
-    };
+    const handleOutsideClick = () => setModPopupId(null);
     document.addEventListener("click", handleOutsideClick);
     return () => document.removeEventListener("click", handleOutsideClick);
   }, []);
@@ -204,7 +202,6 @@ export default function ResultTable({
             const anomalyKey = toAnomalyKey(r);
             const anomaly = anomalyMap.get(anomalyKey);
             const hasAnomaly = r.judgement === "NG" && !!anomaly;
-            const isActive = pinnedId === rowId;
             const isModPopupOpen = modPopupId === rowId;
             const stageOverall = itemStageOverallMap.get(stageKey);
             const showGroupBorder = groupSpan !== null && rowIdx > 0;
@@ -319,6 +316,9 @@ export default function ResultTable({
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="mod-history-hdr">📋 修正前の情報</div>
+
+                          {/* 修正情報 */}
+                          <div className="mod-history-section">修正情報</div>
                           <table className="mod-history-tbl">
                             <tbody>
                               <tr>
@@ -331,7 +331,36 @@ export default function ResultTable({
                               </tr>
                             </tbody>
                           </table>
-                          <div className="mod-history-section">修正前の検査情報</div>
+
+                          {/* 修正前の検査項目情報 */}
+                          <div className="mod-history-section">修正前の検査項目情報</div>
+                          <table className="mod-history-tbl">
+                            <tbody>
+                              <tr>
+                                <th>検査項目名</th>
+                                <td>{r.checkItemName}</td>
+                              </tr>
+                              <tr>
+                                <th>検査方法</th>
+                                <td>{r.checkMethodType}</td>
+                              </tr>
+                              <tr>
+                                <th>測定方法</th>
+                                <td>{masterItem?.measurementMethod || "—"}</td>
+                              </tr>
+                              <tr>
+                                <th>規格上限</th>
+                                <td>{masterItem?.specUpperLimit != null ? `${masterItem.specUpperLimit} mm` : "—"}</td>
+                              </tr>
+                              <tr>
+                                <th>規格下限</th>
+                                <td>{masterItem?.specLowerLimit != null ? `${masterItem.specLowerLimit} mm` : "—"}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+
+                          {/* 修正前の検査結果 */}
+                          <div className="mod-history-section">修正前の検査結果</div>
                           <table className="mod-history-tbl">
                             <tbody>
                               <tr>
@@ -403,17 +432,19 @@ export default function ResultTable({
                   </span>
                   {hasAnomaly && (
                     <span
-                      className={`anomaly-trigger${isActive ? " anomaly-trigger-active" : ""}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPinnedId(pinnedId === rowId ? null : rowId);
+                      className="anomaly-trigger"
+                      onMouseEnter={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setTooltipPos({ top: rect.bottom + 6, left: rect.left });
+                        setHoveredAnomalyId(rowId);
                       }}
+                      onMouseLeave={() => setHoveredAnomalyId(null)}
                     >
                       !
-                      {isActive && (
+                      {hoveredAnomalyId === rowId && (
                         <div
                           className="anomaly-popup"
-                          onClick={(e) => e.stopPropagation()}
+                          style={{ top: tooltipPos.top, left: tooltipPos.left }}
                         >
                           <div className="anomaly-popup-hdr">⚠ 異常理由</div>
                           <div className="anomaly-popup-reason">{anomaly!.reason}</div>
