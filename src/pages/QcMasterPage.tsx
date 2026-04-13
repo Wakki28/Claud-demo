@@ -354,12 +354,12 @@ export default function QcMasterPage() {
             <>
               {/* タブ */}
               <div className="tab-row">
-                <button
+                {/* <button
                   className={`tab-btn${viewMode === "result" ? " act" : ""}`}
                   onClick={() => handleTabChange("result")}
                 >
                   実績データ
-                </button>
+                </button> */}
                 <button
                   className={`tab-btn${viewMode === "master" ? " act" : ""}`}
                   onClick={() => handleTabChange("master")}
