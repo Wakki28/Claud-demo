@@ -15,7 +15,7 @@ import {
   NAME_MAP,
   DUMMY_RESULTS,
   DUMMY_MASTERS,
-  DUMMY_ANOMALIES,
+  // DUMMY_ANOMALIES, // 実績データタブ非表示のため一時コメントアウト
   DUMMY_OVERALL_RESULTS,
   ITEMS_PER_PROCESS,
   getExpectedStages,
@@ -26,7 +26,7 @@ import AppHeader from "../components/qc/AppHeader";
 import SelectorBar from "../components/qc/SelectorBar";
 import EmptyState from "../components/qc/EmptyState";
 import SearchArea from "../components/qc/SearchArea";
-import ResultTable from "../components/qc/ResultTable";
+// import ResultTable from "../components/qc/ResultTable"; // 実績データタブ非表示のため一時コメントアウト
 import MasterTable from "../components/qc/MasterTable";
 import Pagination from "../components/qc/Pagination";
 import MasterFormModal from "../components/qc/MasterFormModal";
@@ -312,9 +312,9 @@ export default function QcMasterPage() {
   };
 
 
-  // 実績サマリー件数
-  const totalAdded = results.filter((r) => r.isAdded).length;
-  const totalUpdated = results.filter((r) => r.isUpdated).length;
+  // 実績サマリー件数（実績データタブ非表示のため一時コメントアウト）
+  // const totalAdded = results.filter((r) => r.isAdded).length;
+  // const totalUpdated = results.filter((r) => r.isUpdated).length;
 
   return (
     <>
@@ -399,6 +399,7 @@ export default function QcMasterPage() {
                       ))}
                     </select>
                   </div>
+                  {/* 実績データタブ 追加/修正件数表示（一時非表示）
                   {viewMode === "result" && (
                     <span
                       style={{
@@ -419,6 +420,7 @@ export default function QcMasterPage() {
                       </span>
                     </span>
                   )}
+                  */}
                 </div>
                 <div className="tbar-r">
                   {viewMode === "master" && (
@@ -463,6 +465,7 @@ export default function QcMasterPage() {
               {/* テーブル */}
               <div className="tbl-outer">
                 <div className="tbl-wrap">
+                  {/* 実績データタブ テーブル（一時非表示）
                   {viewMode === "result" && (
                     <ResultTable
                       rows={paged as Parameters<typeof ResultTable>[0]["rows"]}
@@ -471,6 +474,7 @@ export default function QcMasterPage() {
                       masters={masters}
                     />
                   )}
+                  */}
                   {viewMode === "master" && (
                     <MasterTable
                       rows={paged as Parameters<typeof MasterTable>[0]["rows"]}
