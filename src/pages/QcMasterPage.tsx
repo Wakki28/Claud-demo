@@ -381,47 +381,50 @@ export default function QcMasterPage() {
 
               {/* ツールバー */}
               <div className="tbar">
-                <div className="tbar-l">
-                  <span className="total-lbl">
-                    全 <strong>{data.length}</strong> 件
-                  </span>
-                  <div className="ps-area">
-                    表示件数
-                    <select
-                      className="ps-sel"
-                      value={pageSize}
-                      onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                    >
-                      {[10, 50, 100].map((n) => (
-                        <option key={n} value={n}>
-                          {n}件
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {/* 実績データタブ 追加/修正件数表示（一時非表示）
-                  {viewMode === "result" && (
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: "#666",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <span>
-                        <span className="badge-added">追加</span>{" "}
-                        <strong style={{ color: "#1d4ed8" }}>{totalAdded}</strong>件
-                      </span>
-                      <span>
-                        <span className="badge-updated">修正</span>{" "}
-                        <strong style={{ color: "#c2410c" }}>{totalUpdated}</strong>件
-                      </span>
+                {/* 実績データタブ 件数表示・表示件数セレクタ（一時非表示のため viewMode === "master" 条件に移動） */}
+                {viewMode === "master" && (
+                  <div className="tbar-l">
+                    <span className="total-lbl">
+                      全 <strong>{data.length}</strong> 件
                     </span>
-                  )}
-                  */}
-                </div>
+                    <div className="ps-area">
+                      表示件数
+                      <select
+                        className="ps-sel"
+                        value={pageSize}
+                        onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                      >
+                        {[10, 50, 100].map((n) => (
+                          <option key={n} value={n}>
+                            {n}件
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {/* 実績データタブ 追加/修正件数表示（一時非表示）
+                    {viewMode === "result" && (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: "#666",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <span>
+                          <span className="badge-added">追加</span>{" "}
+                          <strong style={{ color: "#1d4ed8" }}>{totalAdded}</strong>件
+                        </span>
+                        <span>
+                          <span className="badge-updated">修正</span>{" "}
+                          <strong style={{ color: "#c2410c" }}>{totalUpdated}</strong>件
+                        </span>
+                      </span>
+                    )}
+                    */}
+                  </div>
+                )}
                 <div className="tbar-r">
                   {viewMode === "master" && (
                     <>
@@ -451,14 +454,15 @@ export default function QcMasterPage() {
                       >
                         ↓ インポート
                       </button>
+                      <button
+                        className="btn-exp"
+                        onClick={() => setIeModal({ tab: "export" })}
+                      >
+                        ↑ エクスポート
+                      </button>
                     </>
                   )}
-                  <button
-                    className="btn-exp"
-                    onClick={() => setIeModal({ tab: "export" })}
-                  >
-                    ↑ エクスポート
-                  </button>
+                  {/* 実績データタブ エクスポートボタン（一時非表示のため viewMode === "master" 条件内に移動） */}
                 </div>
               </div>
 
@@ -487,12 +491,14 @@ export default function QcMasterPage() {
                   )}
                 </div>
 
-                {/* ページネーション */}
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                />
+                {/* 実績データタブ ページネーション（一時非表示のため viewMode === "master" 条件に移動） */}
+                {viewMode === "master" && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                )}
               </div>
             </>
           )}
